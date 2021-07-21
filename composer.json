@@ -11,11 +11,12 @@
     "require": {
         "php": ">= 7.4",
         "ext-json": "*",
-        "loophp/unaltered-psr-http-message-bridge-bundle": "^2.0.2",
+        "loophp/psr-http-message-bridge-bundle": "^1",
         "psr/http-factory": "^1.0",
         "psr/http-factory-implementation": "^1.0",
         "symfony/expression-language": "^5",
-        "symfony/framework-bundle": "^5"
+        "symfony/framework-bundle": "^5",
+        "league/uri-query-parser": "^1.0"
     },
     "require-dev": {
         "drupol/php-conventions": "^5.0",
