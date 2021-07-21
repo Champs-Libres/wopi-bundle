@@ -1,0 +1,26 @@
+{
+    "name": "champs-libres/wopi-bundle",
+    "type": "symfony-bundle",
+    "description": "TODO",
+    "keywords": [],
+    "homepage": "http://github.com/cl/wopi",
+    "license": "BSD-3-Clause",
+    "require": {
+        "php": ">= 7.4",
+        "ext-json": "*",
+        "loophp/unaltered-psr-http-message-bridge-bundle": "^2",
+        "psr/http-factory": "^1.0",
+        "psr/http-factory-implementation": "^1.0",
+        "symfony/expression-language": "^5",
+        "symfony/framework-bundle": "^5"
+    },
+    "require-dev": {
+        "drupol/php-conventions": "^5.0",
+        "nyholm/psr7": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "ChampsLibres\\WopiBundle\\": "src/"
+        }
+    }
+}
