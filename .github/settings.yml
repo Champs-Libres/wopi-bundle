@@ -59,7 +59,7 @@ repository:
     allow_squash_merge: true
     default_branch: master
     description: "A bundle providing routes and glue code between Symfony and a WOPI connector."
-    homepage: https://www.champs-libres.coop/
+    homepage: "https://github.com/champs-libres"
     topics: wopi,symfony-bundle
     has_downloads: true
     has_issues: true
