@@ -10,20 +10,17 @@ declare(strict_types=1);
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 return static function (ContainerConfigurator $container) {
-    $container
-        ->services()
+    $services = $container->services();
+
+    $services
         ->defaults()
         ->autoconfigure(true)
         ->autowire(true);
 
-    $container
-        ->services()->load('ChampsLibres\\WopiBundle\\Service\\', __DIR__ . '/../../Service')
-        ->autowire(true)
-        ->autoconfigure(true);
+    $services
+        ->load('ChampsLibres\\WopiBundle\\Service\\', __DIR__ . '/../../Service');
 
-    $container
-        ->services()->load('ChampsLibres\\WopiBundle\\Controller\\', __DIR__ . '/../../Controller')
-        ->autowire(true)
-        ->autoconfigure(true)
+    $services
+        ->load('ChampsLibres\\WopiBundle\\Controller\\', __DIR__ . '/../../Controller')
         ->tag('controller.service_arguments');
 };
