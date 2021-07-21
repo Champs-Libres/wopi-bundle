@@ -16,7 +16,9 @@
     },
     "require-dev": {
         "drupol/php-conventions": "^5.0",
-        "nyholm/psr7": "^1.4"
+        "friends-of-phpspec/phpspec-code-coverage": "^6.1",
+        "nyholm/psr7": "^1.4",
+        "phpspec/phpspec": "^7.1"
     },
     "autoload": {
         "psr-4": {
