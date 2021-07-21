@@ -11,7 +11,7 @@
     "require": {
         "php": ">= 7.4",
         "ext-json": "*",
-        "loophp/unaltered-psr-http-message-bridge-bundle": "^2",
+        "loophp/unaltered-psr-http-message-bridge-bundle": "^2.0.2",
         "psr/http-factory": "^1.0",
         "psr/http-factory-implementation": "^1.0",
         "symfony/expression-language": "^5",

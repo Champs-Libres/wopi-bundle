@@ -12,23 +12,19 @@ namespace ChampsLibres\WopiBundle\Controller;
 use ChampsLibres\WopiBundle\Service\Uri;
 use ChampsLibres\WopiBundle\Service\WopiInterface;
 use Psr\Http\Message\RequestInterface;
-use Symfony\Bridge\PsrHttpMessage\HttpFoundationFactoryInterface;
-use Symfony\Component\HttpFoundation\Response;
+use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 final class Files
 {
-    private HttpFoundationFactoryInterface $httpFoundationFactory;
-
     private WopiInterface $wopi;
 
-    public function __construct(WopiInterface $wopi, HttpFoundationFactoryInterface $httpFoundationFactory)
+    public function __construct(WopiInterface $wopi)
     {
         $this->wopi = $wopi;
-        $this->httpFoundationFactory = $httpFoundationFactory;
     }
 
-    public function checkFileInfo(string $fileId, RequestInterface $request): Response
+    public function checkFileInfo(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $checkFileInfo = $this->wopi->checkFileInfo(
@@ -40,10 +36,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($checkFileInfo);
+        return $checkFileInfo;
     }
 
-    public function deleteFile(string $fileId, RequestInterface $request): Response
+    public function deleteFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $deleteFile = $this->wopi->deleteFile(
@@ -55,10 +51,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($deleteFile);
+        return $deleteFile;
     }
 
-    public function enumerateAncestors(string $fileId, RequestInterface $request): Response
+    public function enumerateAncestors(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $enumerateAncestors = $this->wopi->enumerateAncestors(
@@ -70,10 +66,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($enumerateAncestors);
+        return $enumerateAncestors;
     }
 
-    public function getFile(string $fileId, RequestInterface $request): Response
+    public function getFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $getFile = $this->wopi->getFile(
@@ -85,14 +81,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($getFile);
-        //1. convertir $fileId en $url
-        //2. get $url
-        //3. decrypt $content
-        //4. send content
+        return $getFile;
     }
 
-    public function getLock(string $fileId, RequestInterface $request): Response
+    public function getLock(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $getLock = $this->wopi->getLock(
@@ -104,10 +96,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($getLock);
+        return $getLock;
     }
 
-    public function getShareUrl(string $fileId, RequestInterface $request): Response
+    public function getShareUrl(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $getShareUrl = $this->wopi->enumerateAncestors(
@@ -119,10 +111,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($getShareUrl);
+        return $getShareUrl;
     }
 
-    public function lock(string $fileId, RequestInterface $request): Response
+    public function lock(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $lock = $this->wopi->lock(
@@ -135,10 +127,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($lock);
+        return $lock;
     }
 
-    public function putFile(string $fileId, RequestInterface $request): Response
+    public function putFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $putFile = $this->wopi->putFile(
@@ -152,10 +144,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($putFile);
+        return $putFile;
     }
 
-    public function putRelativeFile(string $fileId, RequestInterface $request): Response
+    public function putRelativeFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $putRelativeFile = $this->wopi->putRelativeFile(
@@ -167,10 +159,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($putRelativeFile);
+        return $putRelativeFile;
     }
 
-    public function putUserInfo(string $fileId, RequestInterface $request): Response
+    public function putUserInfo(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $putUserInfo = $this->wopi->putUserInfo(
@@ -182,10 +174,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($putUserInfo);
+        return $putUserInfo;
     }
 
-    public function refreshLock(string $fileId, RequestInterface $request): Response
+    public function refreshLock(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $refreshLock = $this->wopi->refreshLock(
@@ -198,10 +190,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($refreshLock);
+        return $refreshLock;
     }
 
-    public function renameFile(string $fileId, RequestInterface $request): Response
+    public function renameFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $renameFile = $this->wopi->renameFile(
@@ -215,10 +207,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($renameFile);
+        return $renameFile;
     }
 
-    public function unlock(string $fileId, RequestInterface $request): Response
+    public function unlock(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $unlock = $this->wopi->unlock(
@@ -231,10 +223,10 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($unlock);
+        return $unlock;
     }
 
-    public function unlockAndRelock(string $fileId, RequestInterface $request): Response
+    public function unlockAndRelock(string $fileId, RequestInterface $request): ResponseInterface
     {
         try {
             $unlockAndRelock = $this->wopi->unlockAndRelock(
@@ -248,6 +240,6 @@ final class Files
             throw $e;
         }
 
-        return $this->httpFoundationFactory->createResponse($unlockAndRelock);
+        return $unlockAndRelock;
     }
 }
