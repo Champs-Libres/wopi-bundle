@@ -1,10 +1,10 @@
 {
     "name": "champs-libres/wopi-bundle",
     "type": "symfony-bundle",
-    "description": "TODO",
-    "keywords": [],
-    "homepage": "http://github.com/cl/wopi",
-    "license": "BSD-3-Clause",
+    "description": "A bundle providing routes and glue code between Symfony and a WOPI connector.",
+    "keywords": ["wopi", "symfony-bundle"],
+    "homepage": "http://github.com/champs-libres/wopi-bundle",
+    "license": "MIT",
     "require": {
         "php": ">= 7.4",
         "ext-json": "*",
