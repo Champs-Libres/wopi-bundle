@@ -70,4 +70,3 @@ For more detailed changelogs, please check [the release changelogs][45].
 [43]: https://github.com/champs-libres/wopi-bundle/blob/master/CHANGELOG.md
 [44]: https://github.com/champs-libres/wopi-bundle/commits/master
 [45]: https://github.com/champs-libres/wopi-bundle/releases
-[50]: https://www.php.net/manual/en/ini.list.php

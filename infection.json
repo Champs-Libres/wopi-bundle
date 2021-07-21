@@ -1,9 +1,7 @@
 {
     "timeout": 10,
     "source": {
-        "directories": [
-            "src"
-        ]
+        "directories": ["src"]
     },
     "logs": {
         "text": "build/infection.log",
@@ -14,5 +12,5 @@
             "branch": "master"
         }
     },
-    "testFramework":"phpspec"
+    "testFramework": "phpspec"
 }
