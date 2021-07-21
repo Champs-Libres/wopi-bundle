@@ -29,7 +29,7 @@ final class Files
         try {
             $checkFileInfo = $this->wopi->checkFileInfo(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token', ''),
+                Uri::getParam($request->getUri(), 'access_token'),
                 $request
             );
         } catch (Throwable $e) {
