@@ -7,11 +7,9 @@
  [![Code Coverage][code coverage]][3]
  [![License][license]][1]
 
-# Wopi Bundle
+# WOPI Bundle
 
 ## Description
-
-TODO
 
 ## Installation
 
@@ -20,6 +18,10 @@ TODO
 ## Usage
 
 ## Documentation
+
+Links:
+
+* [https://wopi.readthedocs.io/en/latest/](https://wopi.readthedocs.io/en/latest/)
 
 ## Code quality, tests, benchmarks
 
