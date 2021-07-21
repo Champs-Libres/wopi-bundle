@@ -2,7 +2,10 @@
     "name": "champs-libres/wopi-bundle",
     "type": "symfony-bundle",
     "description": "A bundle providing routes and glue code between Symfony and a WOPI connector.",
-    "keywords": ["wopi", "symfony-bundle"],
+    "keywords": [
+        "wopi",
+        "symfony-bundle"
+    ],
     "homepage": "http://github.com/champs-libres/wopi-bundle",
     "license": "MIT",
     "require": {
