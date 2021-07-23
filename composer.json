@@ -13,9 +13,9 @@
         "ext-json": "*",
         "league/uri-query-parser": "^1.0",
         "loophp/psr-http-message-bridge-bundle": "^1",
+        "loophp/psr17": "^1.0",
         "symfony/expression-language": "^5",
-        "symfony/framework-bundle": "^5",
-        "loophp/psr17": "^1.0"
+        "symfony/framework-bundle": "^5"
     },
     "require-dev": {
         "drupol/php-conventions": "^5.0",
