@@ -9,10 +9,9 @@ declare(strict_types=1);
 
 namespace ChampsLibres\WopiBundle\Service;
 
+use loophp\psr17\Psr17Interface;
 use Psr\Http\Message\RequestInterface;
-use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\StreamFactoryInterface;
 
 /**
  * Class Wopi.
@@ -21,14 +20,11 @@ use Psr\Http\Message\StreamFactoryInterface;
  */
 final class Wopi implements WopiInterface
 {
-    private ResponseFactoryInterface $responseFactory;
+    private Psr17Interface $psr17;
 
-    private StreamFactoryInterface $streamFactory;
-
-    public function __construct(ResponseFactoryInterface $responseFactory, StreamFactoryInterface $streamFactory)
+    public function __construct(Psr17Interface $psr17)
     {
-        $this->responseFactory = $responseFactory;
-        $this->streamFactory = $streamFactory;
+        $this->psr17 = $psr17;
     }
 
     public function checkFileInfo(string $fileId, ?string $accessToken, RequestInterface $request): ResponseInterface
@@ -103,7 +99,7 @@ final class Wopi implements WopiInterface
 
     private function getDebugResponse(string $method, RequestInterface $request): ResponseInterface
     {
-        $response = $this->responseFactory->createResponse();
+        $response = $this->psr17->createResponse();
 
         $data = array_merge(
             ['method' => $method],
@@ -111,6 +107,6 @@ final class Wopi implements WopiInterface
             $request->getHeaders()
         );
 
-        return $response->withHeader('content', 'application/json')->withBody($this->streamFactory->createStream((string) json_encode($data)));
+        return $response->withHeader('content', 'application/json')->withBody($this->psr17->createStream((string) json_encode($data)));
     }
 }
