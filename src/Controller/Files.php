@@ -10,7 +10,7 @@ declare(strict_types=1);
 namespace ChampsLibres\WopiBundle\Controller;
 
 use ChampsLibres\WopiBundle\Service\Uri;
-use ChampsLibres\WopiBundle\Service\WopiInterface;
+use ChampsLibres\WopiLib\WopiInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;

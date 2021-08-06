@@ -8,20 +8,26 @@
     ],
     "homepage": "http://github.com/champs-libres/wopi-bundle",
     "license": "MIT",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "require": {
         "php": ">= 7.4",
         "ext-json": "*",
+        "champs-libres/wopi-lib": "dev-master",
         "league/uri-query-parser": "^1.0",
         "loophp/psr-http-message-bridge-bundle": "^1",
         "loophp/psr17": "^1.0",
         "symfony/expression-language": "^5",
-        "symfony/framework-bundle": "^5"
+        "symfony/framework-bundle": "^5",
+        "psr/http-client": "^1.0",
+        "symfony/uid": "^5.3"
     },
     "require-dev": {
         "drupol/php-conventions": "^5.0",
         "friends-of-phpspec/phpspec-code-coverage": "^6.1",
         "nyholm/psr7": "^1.4",
-        "phpspec/phpspec": "^7.1"
+        "phpspec/phpspec": "^7.1",
+        "symfony/http-client": "^5.3"
     },
     "autoload": {
         "psr-4": {
