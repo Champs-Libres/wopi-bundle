@@ -61,6 +61,6 @@ return static function (ContainerConfigurator $container) {
         ->class(Psr18Client::class)
         ->decorate('psr18.http_client')
         ->args([
-            service('wopi_bundle.cached_http_client')
+            service('wopi_bundle.cached_http_client'),
         ]);
 };
