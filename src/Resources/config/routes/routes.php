@@ -45,7 +45,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                 ]
             )
         );
@@ -63,7 +62,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                 ]
             )
         );
@@ -81,7 +79,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWOPILockHeader,
                     $hasXWopiOverrideHeaderSetTo('LOCK'),
                 ]
@@ -102,7 +99,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWOPILockHeader,
                     $hasXWopiOverrideHeaderSetTo('GET_LOCK'),
                 ]
@@ -122,7 +118,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWOPILockHeader,
                     $hasXWopiOverrideHeaderSetTo('REFRESH_LOCK'),
                 ]
@@ -142,7 +137,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWOPILockHeader,
                     $hasXWopiOverrideHeaderSetTo('UNLOCK'),
                 ]
@@ -162,7 +156,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWOPILockHeader,
                     $hasXWopiOverrideHeaderSetTo('LOCK'),
                     $hasHeader('X-WOPI-OldLock'),
@@ -183,7 +176,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWopiOverrideHeaderSetTo('PUT'),
                 ]
             )
@@ -202,7 +194,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWopiOverrideHeaderSetTo('PUT_RELATIVE'),
                 ]
             )
@@ -221,7 +212,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWOPILockHeader,
                     $hasXWopiOverrideHeaderSetTo('RENAME_FILE'),
                     $hasHeader('X-WOPI-RequestedName'),
@@ -242,7 +232,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWopiOverrideHeaderSetTo('DELETE'),
                 ]
             )
@@ -270,7 +259,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWopiOverrideHeaderSetTo('GET_SHARE_URL'),
                     $hasHeader('X-WOPI-UrlType'),
                 ]
@@ -290,7 +278,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasAccessTokenTTLQueryParam,
                     $hasXWopiOverrideHeaderSetTo('PUT_USER_INFO'),
                 ]
             )
