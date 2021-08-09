@@ -21,7 +21,6 @@ return static function (RoutingConfigurator $routes) {
 
     /** Conditions shortcuts */
     $hasAccessTokenQueryParam = 'request.query.has("access_token")';
-    $hasAccessTokenTTLQueryParam = 'request.query.has("access_token_ttl")';
     $hasXWOPILockHeader = 'request.headers.has("X-WOPI-Lock")';
 
     $hasXWopiOverrideHeaderSetTo = static function (string $value): string {
@@ -31,6 +30,8 @@ return static function (RoutingConfigurator $routes) {
     $hasHeader = static function (string $header): string {
         return sprintf('request.headers.has("%s")', $header);
     };
+
+    /** Routes definitions */
 
     /**
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/CheckFileInfo.html
