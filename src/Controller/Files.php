@@ -9,11 +9,13 @@ declare(strict_types=1);
 
 namespace ChampsLibres\WopiBundle\Controller;
 
-use ChampsLibres\WopiBundle\Service\Uri;
 use ChampsLibres\WopiLib\WopiInterface;
+use Exception;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\UriInterface;
 use Throwable;
+use function array_key_exists;
 
 final class Files
 {
@@ -29,7 +31,7 @@ final class Files
         try {
             $checkFileInfo = $this->wopi->checkFileInfo(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
         } catch (Throwable $e) {
@@ -44,7 +46,7 @@ final class Files
         try {
             $deleteFile = $this->wopi->deleteFile(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
         } catch (Throwable $e) {
@@ -59,7 +61,7 @@ final class Files
         try {
             $enumerateAncestors = $this->wopi->enumerateAncestors(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
         } catch (Throwable $e) {
@@ -74,7 +76,7 @@ final class Files
         try {
             $getFile = $this->wopi->getFile(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
         } catch (Throwable $e) {
@@ -89,7 +91,7 @@ final class Files
         try {
             $getLock = $this->wopi->getLock(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
         } catch (Throwable $e) {
@@ -104,7 +106,7 @@ final class Files
         try {
             $getShareUrl = $this->wopi->enumerateAncestors(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
         } catch (Throwable $e) {
@@ -119,7 +121,7 @@ final class Files
         try {
             $lock = $this->wopi->lock(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request->getHeaderLine('X-WOPI-Lock'),
                 $request
             );
@@ -135,7 +137,7 @@ final class Files
         try {
             $putFile = $this->wopi->putFile(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request->getHeaderLine('X-WOPI-Lock'),
                 $request->getHeaderLine('X-WOPI-Editors'),
                 $request
@@ -152,7 +154,7 @@ final class Files
         try {
             $putRelativeFile = $this->wopi->putRelativeFile(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
         } catch (Throwable $e) {
@@ -167,7 +169,7 @@ final class Files
         try {
             $putUserInfo = $this->wopi->putUserInfo(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
         } catch (Throwable $e) {
@@ -182,7 +184,7 @@ final class Files
         try {
             $refreshLock = $this->wopi->refreshLock(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request->getHeaderLine('X-WOPI-Lock'),
                 $request
             );
@@ -198,7 +200,7 @@ final class Files
         try {
             $renameFile = $this->wopi->renameFile(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request->getHeaderLine('X-WOPI-Lock'),
                 $request->getHeaderLine('X-WOPI-RequestedName'),
                 $request
@@ -215,7 +217,7 @@ final class Files
         try {
             $unlock = $this->wopi->unlock(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request->getHeaderLine('X-WOPI-Lock'),
                 $request
             );
@@ -231,7 +233,7 @@ final class Files
         try {
             $unlockAndRelock = $this->wopi->unlockAndRelock(
                 $fileId,
-                Uri::getParam($request->getUri(), 'access_token'),
+                $this->getParam($request->getUri(), 'access_token'),
                 $request->getHeaderLine('X-WOPI-Lock'),
                 $request->getHeaderLine('X-WOPI-OldLock'),
                 $request
@@ -241,5 +243,19 @@ final class Files
         }
 
         return $unlockAndRelock;
+    }
+
+    private function getParam(UriInterface $uri, string $param): string
+    {
+        $output = [];
+
+        parse_str($uri->getQuery(), $output);
+
+        if (!array_key_exists($param, $output)) {
+            // TODO
+            throw new Exception('No param found.');
+        }
+
+        return $output[$param];
     }
 }
