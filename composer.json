@@ -12,13 +12,11 @@
         "php": ">= 7.4",
         "ext-json": "*",
         "champs-libres/wopi-lib": "dev-master",
-        "league/uri-query-parser": "^1.0",
         "loophp/psr-http-message-bridge-bundle": "^1",
         "loophp/psr17": "^1.0",
         "psr/http-client": "^1.0",
         "symfony/expression-language": "^5",
-        "symfony/framework-bundle": "^5",
-        "symfony/uid": "^5.3"
+        "symfony/framework-bundle": "^5"
     },
     "require-dev": {
         "drupol/php-conventions": "^5.0",
