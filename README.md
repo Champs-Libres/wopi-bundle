@@ -9,6 +9,8 @@
 
 # WOPI Bundle
 
+A Symfony bundle to facilitate the implementation of the WOPI endpoints and protocol.
+
 ## Description
 
 The **W**eb Application **O**pen **P**latform **I**nterface (WOPI) protocol let you
@@ -16,6 +18,7 @@ integrate Office for the web with your application. The WOPI protocol enables Of
 the web to access and change files that are stored in your service.
 
 Office for the web platforms:
+
 * [Collabora Office][46]
 * [Office 365][47]
 
