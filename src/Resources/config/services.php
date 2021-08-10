@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use ChampsLibres\WopiBundle\EventListener\WopiDiscoveryListener;
 use ChampsLibres\WopiLib\Discovery\WopiDiscovery;
 use ChampsLibres\WopiLib\Discovery\WopiDiscoveryInterface;
 use Symfony\Component\HttpClient\CachingHttpClient;
