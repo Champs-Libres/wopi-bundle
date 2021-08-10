@@ -11,15 +11,60 @@
 
 ## Description
 
+The **W**eb Application **O**pen **P**latform **I**nterface (WOPI) protocol let you
+integrate Office for the web with your application. The WOPI protocol enables Office for
+the web to access and change files that are stored in your service.
+
+Office for the web platforms:
+* [Collabora Office][46]
+* [Office 365][47]
+
 ## Installation
 
 ```composer require champs-libres/wopi-bundle```
 
 ## Usage
 
-## Documentation
+There are many different ways to store documents in an application. Therefore, this
+bundle does not provide a specific implementation of the WOPI protocol described
+through [a basic interface][49] from the [champs-libres/wopi-lib][48] bundle.
 
-Links:
+Thus, this bundle only provides the glue code between Symfony and [champs-libres/wopi-lib][48].
+
+It provides:
+
+* The [routes][50] that the WOPI protocol needs
+* A [controller][51] to for the WOPI routes
+
+In order to use it, you must provide, through dependency injection, your own implementation
+of a service implementing [the WOPI interface][49] from [champs-libres/wopi-lib][48].
+
+With Symfony, bind your custom implementation to an alias as such in `services.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+use ChampsLibres\WopiLib\WopiInterface;
+use App\Service\CustomWopiImplementation;
+
+return static function (ContainerConfigurator $container) {
+    $services = $container->services();
+
+    $services
+        ->defaults()
+        ->autoconfigure(true)
+        ->autowire(true);
+
+    $services
+        ->alias(WopiInterface::class, CustomWopiImplementation::class);
+};
+```
+
+## Documentation
 
 * [https://wopi.readthedocs.io/en/latest/](https://wopi.readthedocs.io/en/latest/)
 
@@ -42,6 +87,8 @@ Static analyzers are also controlling the code. [PHPStan][38] and
 [PSalm][39] are enabled to their maximum level.
 
 ## Contributing
+
+Feel free to contribute to this project by submitting pull requests on Github.
 
 ## Changelog
 
@@ -70,3 +117,9 @@ For more detailed changelogs, please check [the release changelogs][45].
 [43]: https://github.com/champs-libres/wopi-bundle/blob/master/CHANGELOG.md
 [44]: https://github.com/champs-libres/wopi-bundle/commits/master
 [45]: https://github.com/champs-libres/wopi-bundle/releases
+[46]: https://www.collaboraoffice.com/
+[47]: https://www.office.com/
+[48]: https://github.com/champs-libres/wopi-lib
+[49]: https://github.com/Champs-Libres/wopi-lib/blob/master/src/WopiInterface.php
+[50]: https://github.com/Champs-Libres/wopi-bundle/blob/master/src/Resources/config/routes/routes.php
+[51]: https://github.com/Champs-Libres/wopi-bundle/blob/master/src/Controller/Files.php
