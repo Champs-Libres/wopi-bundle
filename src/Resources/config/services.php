@@ -24,15 +24,6 @@ return static function (ContainerConfigurator $container) {
         ->autowire(true);
 
     $services
-        ->set(WopiDiscoveryListener::class)
-        ->tag(
-            'kernel.event_listener',
-            [
-                'event' => 'kernel.request',
-            ]
-        );
-
-    $services
         ->load('ChampsLibres\\WopiBundle\\Service\\', __DIR__ . '/../../Service');
 
     $services
