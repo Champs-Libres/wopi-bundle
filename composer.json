@@ -13,10 +13,8 @@
         "ext-json": "*",
         "champs-libres/wopi-lib": "dev-master",
         "loophp/psr-http-message-bridge-bundle": "^1",
-        "loophp/psr17": "^1.0",
-        "psr/http-client": "^1.0",
-        "symfony/expression-language": "^5",
-        "symfony/framework-bundle": "^5"
+        "symfony/expression-language": "^4",
+        "symfony/framework-bundle": "^4"
     },
     "require-dev": {
         "drupol/php-conventions": "^5.0",
