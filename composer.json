@@ -14,7 +14,7 @@
         "champs-libres/wopi-lib": "dev-master",
         "loophp/psr-http-message-bridge-bundle": "^1",
         "symfony/expression-language": "^4",
-        "symfony/framework-bundle": "^4"
+        "symfony/framework-bundle": "^5"
     },
     "require-dev": {
         "drupol/php-conventions": "^5.0",
