@@ -25,9 +25,6 @@ return static function (ContainerConfigurator $container) {
         ->autowire(true);
 
     $services
-        ->load('ChampsLibres\\WopiBundle\\Service\\', __DIR__ . '/../../Service');
-
-    $services
         ->load('ChampsLibres\\WopiBundle\\Controller\\', __DIR__ . '/../../Controller')
         ->tag('controller.service_arguments');
 
