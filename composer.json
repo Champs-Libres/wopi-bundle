@@ -13,15 +13,15 @@
         "ext-json": "*",
         "champs-libres/wopi-lib": "dev-master",
         "loophp/psr-http-message-bridge-bundle": "^1",
-        "symfony/expression-language": "^4",
-        "symfony/framework-bundle": "^4"
+        "symfony/expression-language": ">= 4.4",
+        "symfony/framework-bundle": ">= 4.4",
+        "symfony/http-client": ">= 4.4"
     },
     "require-dev": {
         "drupol/php-conventions": "^5.0",
         "friends-of-phpspec/phpspec-code-coverage": "^6.1",
         "nyholm/psr7": "^1.4",
-        "phpspec/phpspec": "^7.1",
-        "symfony/http-client": "^5.3"
+        "phpspec/phpspec": "^7.1"
     },
     "autoload": {
         "psr-4": {
