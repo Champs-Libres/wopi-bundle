@@ -13,9 +13,6 @@ use ChampsLibres\WopiLib\Configuration\WopiConfiguration;
 use ChampsLibres\WopiLib\Configuration\WopiConfigurationInterface;
 use ChampsLibres\WopiLib\Discovery\WopiDiscovery;
 use ChampsLibres\WopiLib\Discovery\WopiDiscoveryInterface;
-use Symfony\Component\HttpClient\CachingHttpClient;
-use Symfony\Component\HttpClient\Psr18Client;
-use Symfony\Component\HttpKernel\HttpCache\Store;
 
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
@@ -37,31 +34,8 @@ return static function (ContainerConfigurator $container) {
         ->alias(WopiConfigurationInterface::class, WopiConfiguration::class);
 
     $services
-        ->set(WopiDiscovery::class)
-        ->arg('$client', service('wopi_bundle.http_client'));
+        ->set(WopiDiscovery::class);
 
     $services
         ->alias(WopiDiscoveryInterface::class, WopiDiscovery::class);
-
-    $services
-        ->set('http_cache.store')
-        ->class(Store::class)
-        ->arg('$root', '%kernel.cache_dir%');
-
-    $services
-        ->set('wopi_bundle.cached_http_client')
-        ->class(CachingHttpClient::class)
-        ->decorate('http_client')
-        ->args([
-            service('.inner'),
-            service('http_cache.store'),
-        ]);
-
-    $services
-        ->set('wopi_bundle.http_client')
-        ->class(Psr18Client::class)
-        ->decorate('psr18.http_client')
-        ->args([
-            service('wopi_bundle.cached_http_client'),
-        ]);
 };
