@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use ChampsLibres\WopiLib\Configuration\WopiConfiguration;
+use ChampsLibres\WopiLib\Configuration\WopiConfigurationInterface;
 use ChampsLibres\WopiLib\Discovery\WopiDiscovery;
 use ChampsLibres\WopiLib\Discovery\WopiDiscoveryInterface;
 use Symfony\Component\HttpClient\CachingHttpClient;
@@ -30,8 +32,14 @@ return static function (ContainerConfigurator $container) {
         ->tag('controller.service_arguments');
 
     $services
+        ->set(WopiConfiguration::class)
+        ->arg('$properties', '%wopi%');
+
+    $services
+        ->alias(WopiConfigurationInterface::class, WopiConfiguration::class);
+
+    $services
         ->set(WopiDiscovery::class)
-        ->arg('$configuration', '%wopi%')
         ->arg('$client', service('wopi_bundle.http_client'));
 
     $services
