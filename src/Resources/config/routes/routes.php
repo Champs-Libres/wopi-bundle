@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
  * phpcs:disable Generic.Files.LineLength.TooLong
  */
 return static function (RoutingConfigurator $routes) {
-    $fileIdRegex = '^[\w,\s-]+\.[\w,\s-]+$';
+    $fileIdRegex = '^[\w,\s-]+$';
 
     /** Conditions shortcuts */
     $hasAccessTokenQueryParam = 'request.query.has("access_token")';
