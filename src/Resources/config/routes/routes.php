@@ -17,8 +17,6 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
  * phpcs:disable Generic.Files.LineLength.TooLong
  */
 return static function (RoutingConfigurator $routes) {
-    $fileIdRegex = '^[\w,\s-]+$';
-
     /** Conditions shortcuts */
     $hasAccessTokenQueryParam = 'request.query.has("access_token")';
     $hasXWOPILockHeader = 'request.headers.has("X-WOPI-Lock")';
@@ -40,7 +38,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('checkFileInfo', '/files/{fileId}')
         ->controller([Files::class, 'checkFileInfo'])
         ->methods([Request::METHOD_GET])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -57,7 +54,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('getFile', '/files/{fileId}/contents')
         ->controller([Files::class, 'getFile'])
         ->methods([Request::METHOD_GET])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -74,7 +70,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('lock', '/files/{fileId}')
         ->controller([Files::class, 'lock'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -93,7 +88,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('getLock', '/files/{fileId}')
         ->controller([Files::class, 'getLock'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition('request.headers.get("X-WOPI-Override") === "GET_LOCK"')
         ->condition(
             implode(
@@ -113,7 +107,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('refreshLock', '/files/{fileId}')
         ->controller([Files::class, 'refreshLock'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -132,7 +125,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('unlock', '/files/{fileId}')
         ->controller([Files::class, 'unlock'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -151,7 +143,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('unlockAndRelock', '/files/{fileId}')
         ->controller([Files::class, 'unlockAndRelock'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -171,7 +162,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('putFile', '/files/{fileId}/contents')
         ->controller([Files::class, 'putFile'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -189,7 +179,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('putRelativeFile', '/files/{fileId}')
         ->controller([Files::class, 'putRelativeFile'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -207,7 +196,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('renameFile', '/files/{fileId}')
         ->controller([Files::class, 'renameFile'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -227,7 +215,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('deleteFile', '/files/{fileId}')
         ->controller([Files::class, 'deleteFile'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -244,8 +231,7 @@ return static function (RoutingConfigurator $routes) {
     $routes
         ->add('enumerateAncestors', '/files/{fileId}/ancestry')
         ->controller([Files::class, 'enumerateAncestors'])
-        ->methods([Request::METHOD_GET])
-        ->requirements(['fileId' => $fileIdRegex]);
+        ->methods([Request::METHOD_GET]);
 
     /**
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/GetShareUrl.html
@@ -254,7 +240,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('getShareUrl', '/files/{fileId}')
         ->controller([Files::class, 'getShareUrl'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
@@ -273,7 +258,6 @@ return static function (RoutingConfigurator $routes) {
         ->add('putUserInfo', '/files/{fileId}')
         ->controller([Files::class, 'putUserInfo'])
         ->methods([Request::METHOD_POST])
-        ->requirements(['fileId' => $fileIdRegex])
         ->condition(
             implode(
                 ' and ',
