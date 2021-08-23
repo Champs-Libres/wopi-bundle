@@ -64,6 +64,25 @@ return static function (RoutingConfigurator $routes) {
         );
 
     /**
+     * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/UnlockAndRelock.html
+     */
+    $routes
+        ->add('unlockAndRelock', '/files/{fileId}')
+        ->controller([Files::class, 'unlockAndRelock'])
+        ->methods([Request::METHOD_POST])
+        ->condition(
+            implode(
+                ' and ',
+                [
+                    $hasAccessTokenQueryParam,
+                    $hasXWOPILockHeader,
+                    $hasXWopiOverrideHeaderSetTo('LOCK'),
+                    $hasHeader('X-WOPI-OldLock'),
+                ]
+            )
+        );
+
+    /**
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/Lock.html
      */
     $routes
@@ -94,7 +113,6 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasAccessTokenQueryParam,
-                    $hasXWOPILockHeader,
                     $hasXWopiOverrideHeaderSetTo('GET_LOCK'),
                 ]
             )
@@ -132,25 +150,6 @@ return static function (RoutingConfigurator $routes) {
                     $hasAccessTokenQueryParam,
                     $hasXWOPILockHeader,
                     $hasXWopiOverrideHeaderSetTo('UNLOCK'),
-                ]
-            )
-        );
-
-    /**
-     * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/UnlockAndRelock.html
-     */
-    $routes
-        ->add('unlockAndRelock', '/files/{fileId}')
-        ->controller([Files::class, 'unlockAndRelock'])
-        ->methods([Request::METHOD_POST])
-        ->condition(
-            implode(
-                ' and ',
-                [
-                    $hasAccessTokenQueryParam,
-                    $hasXWOPILockHeader,
-                    $hasXWopiOverrideHeaderSetTo('LOCK'),
-                    $hasHeader('X-WOPI-OldLock'),
                 ]
             )
         );
