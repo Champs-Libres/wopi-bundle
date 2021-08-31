@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 namespace ChampsLibres\WopiBundle\Controller;
 
-use ChampsLibres\WopiLib\WopiInterface;
+use ChampsLibres\WopiLib\Service\Contract\WopiInterface;
 use Exception;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
