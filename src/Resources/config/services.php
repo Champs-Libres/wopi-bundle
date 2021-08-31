@@ -13,6 +13,8 @@ use ChampsLibres\WopiLib\Configuration\WopiConfiguration;
 use ChampsLibres\WopiLib\Configuration\WopiConfigurationInterface;
 use ChampsLibres\WopiLib\Discovery\WopiDiscovery;
 use ChampsLibres\WopiLib\Discovery\WopiDiscoveryInterface;
+use ChampsLibres\WopiLib\Service\Contract\DocumentLockManagerInterface;
+use ChampsLibres\WopiLib\Service\DocumentLockManager;
 
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
@@ -38,4 +40,10 @@ return static function (ContainerConfigurator $container) {
 
     $services
         ->alias(WopiDiscoveryInterface::class, WopiDiscovery::class);
+
+    $services
+        ->set(DocumentLockManager::class);
+
+    $services
+        ->alias(DocumentLockManagerInterface::class, DocumentLockManager::class);
 };
