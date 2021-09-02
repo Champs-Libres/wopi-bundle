@@ -25,7 +25,6 @@ final class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
             ->scalarNode('server')->end()
-            ->scalarNode('access_token')->end()
             ->scalarNode('access_token_ttl')->end()
             ->end();
 
