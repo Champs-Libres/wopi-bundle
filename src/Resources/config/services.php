@@ -14,7 +14,9 @@ use ChampsLibres\WopiLib\Configuration\WopiConfigurationInterface;
 use ChampsLibres\WopiLib\Discovery\WopiDiscovery;
 use ChampsLibres\WopiLib\Discovery\WopiDiscoveryInterface;
 use ChampsLibres\WopiLib\Service\Contract\DocumentLockManagerInterface;
+use ChampsLibres\WopiLib\Service\Contract\WopiProofValidatorInterface;
 use ChampsLibres\WopiLib\Service\DocumentLockManager;
+use ChampsLibres\WopiLib\Service\WopiProofValidator;
 
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
@@ -46,4 +48,10 @@ return static function (ContainerConfigurator $container) {
 
     $services
         ->alias(DocumentLockManagerInterface::class, DocumentLockManager::class);
+
+    $services
+        ->set(WopiProofValidator::class);
+
+    $services
+        ->alias(WopiProofValidatorInterface::class, WopiProofValidator::class);
 };

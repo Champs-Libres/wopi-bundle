@@ -10,7 +10,9 @@ declare(strict_types=1);
 namespace ChampsLibres\WopiBundle\Controller;
 
 use ChampsLibres\WopiLib\Service\Contract\WopiInterface;
+use ChampsLibres\WopiLib\Service\Contract\WopiProofValidatorInterface;
 use Exception;
+use loophp\psr17\Psr17Interface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
@@ -20,15 +22,30 @@ use function array_key_exists;
 
 final class Files
 {
+    private Psr17Interface $psr17;
+
     private WopiInterface $wopi;
 
-    public function __construct(WopiInterface $wopi)
-    {
+    private WopiProofValidatorInterface $wopiProofValidator;
+
+    public function __construct(
+        WopiInterface $wopi,
+        WopiProofValidatorInterface $wopiProofValidator,
+        Psr17Interface $psr17
+    ) {
         $this->wopi = $wopi;
+        $this->wopiProofValidator = $wopiProofValidator;
+        $this->psr17 = $psr17;
     }
 
     public function checkFileInfo(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $checkFileInfo = $this->wopi->checkFileInfo(
                 $fileId,
@@ -44,6 +61,12 @@ final class Files
 
     public function deleteFile(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $deleteFile = $this->wopi->deleteFile(
                 $fileId,
@@ -59,6 +82,12 @@ final class Files
 
     public function enumerateAncestors(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $enumerateAncestors = $this->wopi->enumerateAncestors(
                 $fileId,
@@ -74,6 +103,12 @@ final class Files
 
     public function getFile(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $getFile = $this->wopi->getFile(
                 $fileId,
@@ -89,6 +124,12 @@ final class Files
 
     public function getLock(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $getLock = $this->wopi->getLock(
                 $fileId,
@@ -104,6 +145,12 @@ final class Files
 
     public function getShareUrl(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $getShareUrl = $this->wopi->enumerateAncestors(
                 $fileId,
@@ -119,6 +166,12 @@ final class Files
 
     public function lock(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $lock = $this->wopi->lock(
                 $fileId,
@@ -135,6 +188,12 @@ final class Files
 
     public function putFile(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $putFile = $this->wopi->putFile(
                 $fileId,
@@ -152,6 +211,12 @@ final class Files
 
     public function putRelativeFile(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $putRelativeFile = $this->wopi->putRelativeFile(
                 $fileId,
@@ -167,6 +232,12 @@ final class Files
 
     public function putUserInfo(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $putUserInfo = $this->wopi->putUserInfo(
                 $fileId,
@@ -182,6 +253,12 @@ final class Files
 
     public function refreshLock(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $refreshLock = $this->wopi->refreshLock(
                 $fileId,
@@ -198,6 +275,12 @@ final class Files
 
     public function renameFile(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $renameFile = $this->wopi->renameFile(
                 $fileId,
@@ -215,6 +298,12 @@ final class Files
 
     public function unlock(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $unlock = $this->wopi->unlock(
                 $fileId,
@@ -231,6 +320,12 @@ final class Files
 
     public function unlockAndRelock(string $fileId, RequestInterface $request): ResponseInterface
     {
+        if (!$this->wopiProofValidator->isValid($request)) {
+            return $this
+                ->psr17
+                ->createResponse(500);
+        }
+
         try {
             $unlockAndRelock = $this->wopi->unlockAndRelock(
                 $fileId,
