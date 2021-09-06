@@ -13,6 +13,8 @@ use ChampsLibres\WopiLib\Configuration\WopiConfiguration;
 use ChampsLibres\WopiLib\Configuration\WopiConfigurationInterface;
 use ChampsLibres\WopiLib\Discovery\WopiDiscovery;
 use ChampsLibres\WopiLib\Discovery\WopiDiscoveryInterface;
+use ChampsLibres\WopiLib\Service\Clock\SystemClock;
+use ChampsLibres\WopiLib\Service\Contract\ClockInterface;
 use ChampsLibres\WopiLib\Service\Contract\DocumentLockManagerInterface;
 use ChampsLibres\WopiLib\Service\Contract\WopiProofValidatorInterface;
 use ChampsLibres\WopiLib\Service\DocumentLockManager;
@@ -48,6 +50,12 @@ return static function (ContainerConfigurator $container) {
 
     $services
         ->alias(DocumentLockManagerInterface::class, DocumentLockManager::class);
+
+    $services
+        ->set(SystemClock::class);
+
+    $services
+        ->alias(ClockInterface::class, SystemClock::class);
 
     $services
         ->set(WopiProofValidator::class);
