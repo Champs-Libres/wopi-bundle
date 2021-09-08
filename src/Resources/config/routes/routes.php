@@ -23,7 +23,7 @@ return static function (RoutingConfigurator $routes) {
     };
 
     $hasQueryParam = static function (string $header): string {
-        return sprintf('request.headers.has("%s")', $header);
+        return sprintf('request.query.has("%s")', $header);
     };
 
     $hasHeader = static function (string $header): string {
