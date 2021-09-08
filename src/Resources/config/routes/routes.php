@@ -18,11 +18,12 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
  */
 return static function (RoutingConfigurator $routes) {
     /** Conditions shortcuts */
-    $hasAccessTokenQueryParam = 'request.query.has("access_token")';
-    $hasXWOPILockHeader = 'request.headers.has("X-WOPI-Lock")';
-
     $hasXWopiOverrideHeaderSetTo = static function (string $value): string {
         return sprintf('request.headers.get("X-WOPI-Override") === "%s"', $value);
+    };
+
+    $hasQueryParam = static function (string $header): string {
+        return sprintf('request.headers.has("%s")', $header);
     };
 
     $hasHeader = static function (string $header): string {
@@ -42,7 +43,7 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
+                    $hasQueryParam('access_token'),
                 ]
             )
         );
@@ -58,7 +59,7 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
+                    $hasQueryParam('access_token'),
                 ]
             )
         );
@@ -74,8 +75,8 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
-                    $hasXWOPILockHeader,
+                    $hasQueryParam('access_token'),
+                    $hasHeader('X-WOPI-Lock'),
                     $hasXWopiOverrideHeaderSetTo('LOCK'),
                     $hasHeader('X-WOPI-OldLock'),
                 ]
@@ -93,8 +94,8 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
-                    $hasXWOPILockHeader,
+                    $hasQueryParam('access_token'),
+                    $hasHeader('X-WOPI-Lock'),
                     $hasXWopiOverrideHeaderSetTo('LOCK'),
                 ]
             )
@@ -112,7 +113,7 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
+                    $hasQueryParam('access_token'),
                     $hasXWopiOverrideHeaderSetTo('GET_LOCK'),
                 ]
             )
@@ -129,8 +130,8 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
-                    $hasXWOPILockHeader,
+                    $hasQueryParam('access_token'),
+                    $hasHeader('X-WOPI-Lock'),
                     $hasXWopiOverrideHeaderSetTo('REFRESH_LOCK'),
                 ]
             )
@@ -147,8 +148,8 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
-                    $hasXWOPILockHeader,
+                    $hasQueryParam('access_token'),
+                    $hasHeader('X-WOPI-Lock'),
                     $hasXWopiOverrideHeaderSetTo('UNLOCK'),
                 ]
             )
@@ -165,7 +166,7 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
+                    $hasQueryParam('access_token'),
                     $hasXWopiOverrideHeaderSetTo('PUT'),
                 ]
             )
@@ -182,7 +183,7 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
+                    $hasQueryParam('access_token'),
                     $hasXWopiOverrideHeaderSetTo('PUT_RELATIVE'),
                 ]
             )
@@ -199,8 +200,8 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
-                    $hasXWOPILockHeader,
+                    $hasQueryParam('access_token'),
+                    $hasHeader('X-WOPI-Lock'),
                     $hasXWopiOverrideHeaderSetTo('RENAME_FILE'),
                     $hasHeader('X-WOPI-RequestedName'),
                 ]
@@ -218,7 +219,7 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
+                    $hasQueryParam('access_token'),
                     $hasXWopiOverrideHeaderSetTo('DELETE'),
                 ]
             )
@@ -243,7 +244,7 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
+                    $hasQueryParam('access_token'),
                     $hasXWopiOverrideHeaderSetTo('GET_SHARE_URL'),
                     $hasHeader('X-WOPI-UrlType'),
                 ]
@@ -261,7 +262,7 @@ return static function (RoutingConfigurator $routes) {
             implode(
                 ' and ',
                 [
-                    $hasAccessTokenQueryParam,
+                    $hasQueryParam('access_token'),
                     $hasXWopiOverrideHeaderSetTo('PUT_USER_INFO'),
                 ]
             )
