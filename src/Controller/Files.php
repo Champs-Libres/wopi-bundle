@@ -209,7 +209,6 @@ final class Files
         return $putFile;
     }
 
-
     public function putRelativeFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
@@ -218,14 +217,24 @@ final class Files
                 ->createResponse(500);
         }
 
+        $suggestedTarget = $request->hasHeader('X-WOPI-SuggestedTarget') ?
+            mb_convert_encoding($request->getHeaderLine('X-WOPI-SuggestedTarget'), 'UTF-8', 'UTF-7') :
+            null;
+        $relativeTarget = $request->hasHeader('X-WOPI-RelativeTarget') ?
+            mb_convert_encoding($request->getHeaderLine('X-WOPI-RelativeTarget'), 'UTF-8', 'UTF-7') :
+            null;
+        $overwriteRelativeTarget = $request->hasHeader('X-WOPI-OverwriteRelativeTarget') ?
+            ('false' === strtolower($request->getHeaderLine('X-WOPI-OverwriteRelativeTarget')) ? false : true) :
+            false;
+
         try {
             $putRelativeFile = $this->wopi->putRelativeFile(
                 $fileId,
                 $this->getParam($request->getUri(), 'access_token'),
-                $request->hasHeader('X-WOPI-SuggestedTarget') ? mb_convert_encoding($request->getHeaderLine('X-WOPI-SuggestedTarget'), 'UTF-8', 'UTF-7') : null,
-                $request->hasHeader('X-WOPI-RelativeTarget') ? mb_convert_encoding($request->getHeaderLine('X-WOPI-RelativeTarget'), 'UTF-8', 'UTF-7') : null,
-                'false' === strtolower($request->getHeaderLine('X-WOPI-OverwriteRelativeTarget')) ? false : true,
-                (int) $request->getHeader('X-WOPI-Size'),
+                $suggestedTarget,
+                $relativeTarget,
+                $overwriteRelativeTarget,
+                (int) $request->getHeaderLine('X-WOPI-Size'),
                 $request
             );
         } catch (Throwable $e) {
