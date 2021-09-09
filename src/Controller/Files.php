@@ -295,12 +295,16 @@ final class Files
                 ->createResponse(500);
         }
 
+        $requestedName = $request->hasHeader('X-WOPI-RequestedName') ?
+            mb_convert_encoding($request->getHeaderLine('X-WOPI-RequestedName'), 'UTF-8', 'UTF-7') :
+            null;
+
         try {
             $renameFile = $this->wopi->renameFile(
                 $fileId,
                 $this->getParam($request->getUri(), 'access_token'),
                 $request->getHeaderLine('X-WOPI-Lock'),
-                $request->getHeaderLine('X-WOPI-RequestedName'),
+                $requestedName,
                 $request
             );
         } catch (Throwable $e) {
