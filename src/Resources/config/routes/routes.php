@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 use ChampsLibres\WopiBundle\Controller\Files;
+use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
@@ -18,8 +19,8 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
  */
 return static function (RoutingConfigurator $routes) {
     /** Conditions shortcuts */
-    $hasXWopiOverrideHeaderSetTo = static function (string $value): string {
-        return sprintf('request.headers.get("X-WOPI-Override") === "%s"', $value);
+    $isHeaderSetTo = static function (string $header, string $value): string {
+        return sprintf('request.headers.get("%s") === "%s"', $header, $value);
     };
 
     $hasQueryParam = static function (string $header): string {
@@ -76,9 +77,9 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasHeader('X-WOPI-Lock'),
-                    $hasXWopiOverrideHeaderSetTo('LOCK'),
-                    $hasHeader('X-WOPI-OldLock'),
+                    $hasHeader(WopiInterface::HEADER_LOCK),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'LOCK'),
+                    $hasHeader(WopiInterface::HEADER_OLD_LOCK),
                 ]
             )
         );
@@ -95,8 +96,8 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasHeader('X-WOPI-Lock'),
-                    $hasXWopiOverrideHeaderSetTo('LOCK'),
+                    $hasHeader(WopiInterface::HEADER_LOCK),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'LOCK'),
                 ]
             )
         );
@@ -114,7 +115,7 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasXWopiOverrideHeaderSetTo('GET_LOCK'),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'GET_LOCK'),
                 ]
             )
         );
@@ -131,8 +132,8 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasHeader('X-WOPI-Lock'),
-                    $hasXWopiOverrideHeaderSetTo('REFRESH_LOCK'),
+                    $hasHeader(WopiInterface::HEADER_LOCK),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'REFRESH_LOCK'),
                 ]
             )
         );
@@ -149,8 +150,8 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasHeader('X-WOPI-Lock'),
-                    $hasXWopiOverrideHeaderSetTo('UNLOCK'),
+                    $hasHeader(WopiInterface::HEADER_LOCK),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'UNLOCK'),
                 ]
             )
         );
@@ -167,7 +168,8 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasXWopiOverrideHeaderSetTo('PUT'),
+                    // @TODO: No lock header?
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'PUT'),
                 ]
             )
         );
@@ -184,7 +186,7 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasXWopiOverrideHeaderSetTo('PUT_RELATIVE'),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'PUT_RELATIVE'),
                 ]
             )
         );
@@ -201,9 +203,9 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasHeader('X-WOPI-Lock'),
-                    $hasXWopiOverrideHeaderSetTo('RENAME_FILE'),
-                    $hasHeader('X-WOPI-RequestedName'),
+                    $hasHeader(WopiInterface::HEADER_LOCK),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'RENAME_FILE'),
+                    $hasHeader(WopiInterface::HEADER_REQUESTED_NAME),
                 ]
             )
         );
@@ -220,7 +222,7 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasXWopiOverrideHeaderSetTo('DELETE'),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'DELETE'),
                 ]
             )
         );
@@ -245,8 +247,8 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasXWopiOverrideHeaderSetTo('GET_SHARE_URL'),
-                    $hasHeader('X-WOPI-UrlType'),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'GET_SHARE_URL'),
+                    $hasHeader(WopiInterface::HEADER_URL_TYPE),
                 ]
             )
         );
@@ -263,7 +265,7 @@ return static function (RoutingConfigurator $routes) {
                 ' and ',
                 [
                     $hasQueryParam('access_token'),
-                    $hasXWopiOverrideHeaderSetTo('PUT_USER_INFO'),
+                    $isHeaderSetTo(WopiInterface::HEADER_OVERRIDE, 'PUT_USER_INFO'),
                 ]
             )
         );

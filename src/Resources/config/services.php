@@ -9,16 +9,16 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use ChampsLibres\WopiLib\Configuration\WopiConfiguration;
-use ChampsLibres\WopiLib\Configuration\WopiConfigurationInterface;
-use ChampsLibres\WopiLib\Discovery\WopiDiscovery;
-use ChampsLibres\WopiLib\Discovery\WopiDiscoveryInterface;
+use ChampsLibres\WopiLib\Contract\Service\Clock\ClockInterface;
+use ChampsLibres\WopiLib\Contract\Service\Configuration\ConfigurationInterface;
+use ChampsLibres\WopiLib\Contract\Service\Discovery\DiscoveryInterface;
+use ChampsLibres\WopiLib\Contract\Service\DocumentLockManagerInterface;
+use ChampsLibres\WopiLib\Contract\Service\ProofValidatorInterface;
 use ChampsLibres\WopiLib\Service\Clock\SystemClock;
-use ChampsLibres\WopiLib\Service\Contract\ClockInterface;
-use ChampsLibres\WopiLib\Service\Contract\DocumentLockManagerInterface;
-use ChampsLibres\WopiLib\Service\Contract\WopiProofValidatorInterface;
+use ChampsLibres\WopiLib\Service\Configuration\Configuration;
+use ChampsLibres\WopiLib\Service\Discovery\Discovery;
 use ChampsLibres\WopiLib\Service\DocumentLockManager;
-use ChampsLibres\WopiLib\Service\WopiProofValidator;
+use ChampsLibres\WopiLib\Service\ProofValidator;
 
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
@@ -33,17 +33,17 @@ return static function (ContainerConfigurator $container) {
         ->tag('controller.service_arguments');
 
     $services
-        ->set(WopiConfiguration::class)
+        ->set(Configuration::class)
         ->arg('$properties', '%wopi%');
 
     $services
-        ->alias(WopiConfigurationInterface::class, WopiConfiguration::class);
+        ->alias(ConfigurationInterface::class, Configuration::class);
 
     $services
-        ->set(WopiDiscovery::class);
+        ->set(Discovery::class);
 
     $services
-        ->alias(WopiDiscoveryInterface::class, WopiDiscovery::class);
+        ->alias(DiscoveryInterface::class, Discovery::class);
 
     $services
         ->set(DocumentLockManager::class);
@@ -58,8 +58,8 @@ return static function (ContainerConfigurator $container) {
         ->alias(ClockInterface::class, SystemClock::class);
 
     $services
-        ->set(WopiProofValidator::class);
+        ->set(ProofValidator::class);
 
     $services
-        ->alias(WopiProofValidatorInterface::class, WopiProofValidator::class);
+        ->alias(ProofValidatorInterface::class, ProofValidator::class);
 };

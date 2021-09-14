@@ -9,8 +9,8 @@ declare(strict_types=1);
 
 namespace ChampsLibres\WopiBundle\Controller;
 
-use ChampsLibres\WopiLib\Service\Contract\WopiInterface;
-use ChampsLibres\WopiLib\Service\Contract\WopiProofValidatorInterface;
+use ChampsLibres\WopiLib\Contract\Service\ProofValidatorInterface;
+use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use Exception;
 use loophp\psr17\Psr17Interface;
 use Psr\Http\Message\RequestInterface;
@@ -20,17 +20,22 @@ use Throwable;
 
 use function array_key_exists;
 
+/**
+ * Class Files.
+ *
+ * phpcs:disable Generic.Files.LineLength.TooLong
+ */
 final class Files
 {
     private Psr17Interface $psr17;
 
     private WopiInterface $wopi;
 
-    private WopiProofValidatorInterface $wopiProofValidator;
+    private ProofValidatorInterface $wopiProofValidator;
 
     public function __construct(
         WopiInterface $wopi,
-        WopiProofValidatorInterface $wopiProofValidator,
+        ProofValidatorInterface $wopiProofValidator,
         Psr17Interface $psr17
     ) {
         $this->wopi = $wopi;
@@ -176,7 +181,7 @@ final class Files
             $lock = $this->wopi->lock(
                 $fileId,
                 $this->getParam($request->getUri(), 'access_token'),
-                $request->getHeaderLine('X-WOPI-Lock'),
+                $request->getHeaderLine(WopiInterface::HEADER_LOCK),
                 $request
             );
         } catch (Throwable $e) {
@@ -198,8 +203,8 @@ final class Files
             $putFile = $this->wopi->putFile(
                 $fileId,
                 $this->getParam($request->getUri(), 'access_token'),
-                $request->getHeaderLine('X-WOPI-Lock'),
-                $request->getHeaderLine('X-WOPI-Editors'),
+                $request->getHeaderLine(WopiInterface::HEADER_LOCK),
+                $request->getHeaderLine(WopiInterface::HEADER_EDITORS),
                 $request
             );
         } catch (Throwable $e) {
@@ -217,14 +222,14 @@ final class Files
                 ->createResponse(500);
         }
 
-        $suggestedTarget = $request->hasHeader('X-WOPI-SuggestedTarget') ?
-            mb_convert_encoding($request->getHeaderLine('X-WOPI-SuggestedTarget'), 'UTF-8', 'UTF-7') :
+        $suggestedTarget = $request->hasHeader(WopiInterface::HEADER_SUGGESTED_TARGET) ?
+            mb_convert_encoding($request->getHeaderLine(WopiInterface::HEADER_SUGGESTED_TARGET), 'UTF-8', 'UTF-7') :
             null;
-        $relativeTarget = $request->hasHeader('X-WOPI-RelativeTarget') ?
-            mb_convert_encoding($request->getHeaderLine('X-WOPI-RelativeTarget'), 'UTF-8', 'UTF-7') :
+        $relativeTarget = $request->hasHeader(WopiInterface::HEADER_RELATIVE_TARGET) ?
+            mb_convert_encoding($request->getHeaderLine(WopiInterface::HEADER_RELATIVE_TARGET), 'UTF-8', 'UTF-7') :
             null;
-        $overwriteRelativeTarget = $request->hasHeader('X-WOPI-OverwriteRelativeTarget') ?
-            ('false' === strtolower($request->getHeaderLine('X-WOPI-OverwriteRelativeTarget')) ? false : true) :
+        $overwriteRelativeTarget = $request->hasHeader(WopiInterface::HEADER_OVERWRITE_RELATIVE_TARGET) ?
+            ('false' === strtolower($request->getHeaderLine(WopiInterface::HEADER_OVERWRITE_RELATIVE_TARGET)) ? false : true) :
             false;
 
         try {
@@ -234,7 +239,7 @@ final class Files
                 $suggestedTarget,
                 $relativeTarget,
                 $overwriteRelativeTarget,
-                (int) $request->getHeaderLine('X-WOPI-Size'),
+                (int) $request->getHeaderLine(WopiInterface::HEADER_SIZE),
                 $request
             );
         } catch (Throwable $e) {
@@ -277,7 +282,7 @@ final class Files
             $refreshLock = $this->wopi->refreshLock(
                 $fileId,
                 $this->getParam($request->getUri(), 'access_token'),
-                $request->getHeaderLine('X-WOPI-Lock'),
+                $request->getHeaderLine(WopiInterface::HEADER_LOCK),
                 $request
             );
         } catch (Throwable $e) {
@@ -295,15 +300,15 @@ final class Files
                 ->createResponse(500);
         }
 
-        $requestedName = $request->hasHeader('X-WOPI-RequestedName') ?
-            mb_convert_encoding($request->getHeaderLine('X-WOPI-RequestedName'), 'UTF-8', 'UTF-7') :
+        $requestedName = $request->hasHeader(WopiInterface::HEADER_REQUESTED_NAME) ?
+            mb_convert_encoding($request->getHeaderLine(WopiInterface::HEADER_REQUESTED_NAME), 'UTF-8', 'UTF-7') :
             null;
 
         try {
             $renameFile = $this->wopi->renameFile(
                 $fileId,
                 $this->getParam($request->getUri(), 'access_token'),
-                $request->getHeaderLine('X-WOPI-Lock'),
+                $request->getHeaderLine(WopiInterface::HEADER_LOCK),
                 $requestedName,
                 $request
             );
@@ -326,7 +331,7 @@ final class Files
             $unlock = $this->wopi->unlock(
                 $fileId,
                 $this->getParam($request->getUri(), 'access_token'),
-                $request->getHeaderLine('X-WOPI-Lock'),
+                $request->getHeaderLine(WopiInterface::HEADER_LOCK),
                 $request
             );
         } catch (Throwable $e) {
@@ -348,8 +353,8 @@ final class Files
             $unlockAndRelock = $this->wopi->unlockAndRelock(
                 $fileId,
                 $this->getParam($request->getUri(), 'access_token'),
-                $request->getHeaderLine('X-WOPI-Lock'),
-                $request->getHeaderLine('X-WOPI-OldLock'),
+                $request->getHeaderLine(WopiInterface::HEADER_LOCK),
+                $request->getHeaderLine(WopiInterface::HEADER_OLD_LOCK),
                 $request
             );
         } catch (Throwable $e) {
