@@ -15,7 +15,8 @@
         "loophp/psr-http-message-bridge-bundle": "^1",
         "symfony/expression-language": ">= 4.4",
         "symfony/framework-bundle": ">= 4.4",
-        "symfony/http-client": ">= 4.4"
+        "symfony/http-client": ">= 4.4",
+        "symfony/security-core": ">= 4.4"
     },
     "require-dev": {
         "drupol/php-conventions": "^5.0",

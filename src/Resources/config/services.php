@@ -9,11 +9,13 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use ChampsLibres\WopiBundle\Service\Wopi;
 use ChampsLibres\WopiLib\Contract\Service\Clock\ClockInterface;
 use ChampsLibres\WopiLib\Contract\Service\Configuration\ConfigurationInterface;
 use ChampsLibres\WopiLib\Contract\Service\Discovery\DiscoveryInterface;
 use ChampsLibres\WopiLib\Contract\Service\DocumentLockManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\ProofValidatorInterface;
+use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use ChampsLibres\WopiLib\Service\Clock\SystemClock;
 use ChampsLibres\WopiLib\Service\Configuration\Configuration;
 use ChampsLibres\WopiLib\Service\Discovery\Discovery;
@@ -62,4 +64,10 @@ return static function (ContainerConfigurator $container) {
 
     $services
         ->alias(ProofValidatorInterface::class, ProofValidator::class);
+
+    $services
+        ->set(Wopi::class);
+
+    $services
+        ->alias(WopiInterface::class, Wopi::class);
 };
