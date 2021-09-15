@@ -15,12 +15,14 @@ use ChampsLibres\WopiLib\Contract\Service\Configuration\ConfigurationInterface;
 use ChampsLibres\WopiLib\Contract\Service\Discovery\DiscoveryInterface;
 use ChampsLibres\WopiLib\Contract\Service\DocumentLockManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\ProofValidatorInterface;
+use ChampsLibres\WopiLib\Contract\Service\Utils\DotNetTimeConverterInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use ChampsLibres\WopiLib\Service\Clock\SystemClock;
 use ChampsLibres\WopiLib\Service\Configuration\Configuration;
 use ChampsLibres\WopiLib\Service\Discovery\Discovery;
 use ChampsLibres\WopiLib\Service\DocumentLockManager;
 use ChampsLibres\WopiLib\Service\ProofValidator;
+use ChampsLibres\WopiLib\Service\Utils\DotNetTimeConverter;
 
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
@@ -58,6 +60,12 @@ return static function (ContainerConfigurator $container) {
 
     $services
         ->alias(ClockInterface::class, SystemClock::class);
+
+    $services
+        ->set(DotNetTimeConverter::class);
+
+    $services
+        ->alias(DotNetTimeConverterInterface::class, DotNetTimeConverter::class);
 
     $services
         ->set(ProofValidator::class);
