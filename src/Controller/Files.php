@@ -302,7 +302,13 @@ final class Files
 
         $requestedName = $request->hasHeader(WopiInterface::HEADER_REQUESTED_NAME) ?
             mb_convert_encoding($request->getHeaderLine(WopiInterface::HEADER_REQUESTED_NAME), 'UTF-8', 'UTF-7') :
-            null;
+            false;
+
+        if (false === $requestedName) {
+            return $this
+                ->psr17
+                ->createResponse(400);
+        }
 
         try {
             $renameFile = $this->wopi->renameFile(
