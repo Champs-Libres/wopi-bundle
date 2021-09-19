@@ -11,6 +11,7 @@
     "require": {
         "php": ">= 7.4",
         "ext-json": "*",
+        "ext-mbstring": "*",
         "champs-libres/wopi-lib": "dev-master",
         "loophp/psr-http-message-bridge-bundle": "^1",
         "symfony/expression-language": ">= 4.4",
