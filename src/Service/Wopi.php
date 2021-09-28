@@ -58,9 +58,9 @@ final class Wopi implements WopiInterface
             ->withHeader('Content-Type', 'application/json')
             ->withBody($this->psr17->createStream((string) json_encode(
                 [
-                    'BaseFileName' => $document->getBasename(),
+                    'BaseFileName' => $this->documentManager->getBasename($document),
                     'OwnerId' => 'Symfony',
-                    'Size' => (int) $document->getSize(),
+                    'Size' => $this->documentManager->getSize($document),
                     'UserId' => $userIdentifier,
                     'ReadOnly' => false,
                     'UserCanAttend' => true,
@@ -81,7 +81,7 @@ final class Wopi implements WopiInterface
                     'SupportedShareUrlTypes' => [
                         'ReadOnly',
                     ],
-                    'SHA256' => $document->getSha256(),
+                    'SHA256' => $this->documentManager->getSha256($document),
                     'UserInfo' => (string) $this->cache->getItem($userCacheKey)->get(),
                 ]
             )));
@@ -98,21 +98,24 @@ final class Wopi implements WopiInterface
             ->createResponse(200);
     }
 
-    public function enumerateAncestors(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
-    {
+    public function enumerateAncestors(
+        string $fileId,
+        string $accessToken,
+        RequestInterface $request
+    ): ResponseInterface {
         return $this
             ->psr17
             ->createResponse(501);
     }
 
-    public function getFile(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
-    {
+    public function getFile(
+        string $fileId,
+        string $accessToken,
+        RequestInterface $request
+    ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
         $revision = $this->documentManager->getVersion($document);
-
-        $content = (null === $contentResource = $document->getContent()) ?
-            $this->psr17->createStream('') :
-            $this->psr17->createStreamFromResource($contentResource);
+        $content = $this->documentManager->read($document);
 
         return $this
             ->psr17
@@ -127,11 +130,11 @@ final class Wopi implements WopiInterface
             )
             ->withHeader(
                 'Content-Length',
-                $document->getSize()
+                $this->documentManager->getSize($document)
             )
             ->withHeader(
                 'Content-Disposition',
-                sprintf('attachment; filename=%s', $document->getBasename())
+                sprintf('attachment; filename=%s', $this->documentManager->getBasename($document))
             )
             ->withBody($content);
     }
@@ -160,8 +163,12 @@ final class Wopi implements WopiInterface
             ->createResponse(501);
     }
 
-    public function lock(string $fileId, string $accessToken, string $xWopiLock, RequestInterface $request): ResponseInterface
-    {
+    public function lock(
+        string $fileId,
+        string $accessToken,
+        string $xWopiLock,
+        RequestInterface $request
+    ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
         $version = $this->documentManager->getVersion($document);
 
@@ -191,14 +198,19 @@ final class Wopi implements WopiInterface
             );
     }
 
-    public function putFile(string $fileId, string $accessToken, string $xWopiLock, string $xWopiEditors, RequestInterface $request): ResponseInterface
-    {
+    public function putFile(
+        string $fileId,
+        string $accessToken,
+        string $xWopiLock,
+        string $xWopiEditors,
+        RequestInterface $request
+    ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
         $version = $this->documentManager->getVersion($document);
 
         // File is unlocked
         if (false === $this->documentManager->hasLock($document)) {
-            if ('0' !== $document->getSize()) {
+            if (0 !== $this->documentManager->getSize($document)) {
                 return $this
                     ->psr17
                     ->createResponse(409)
@@ -227,11 +239,13 @@ final class Wopi implements WopiInterface
         }
 
         $body = (string) $request->getBody();
-
-        $document->setContent($body);
-        $document->setSize((string) strlen($body));
-
-        $this->documentManager->write($document);
+        $this->documentManager->write(
+            $document,
+            [
+                'content' => $body,
+                'size' => (string) strlen($body),
+            ]
+        );
         $version = $this->documentManager->getVersion($document);
 
         return $this
@@ -247,8 +261,15 @@ final class Wopi implements WopiInterface
             );
     }
 
-    public function putRelativeFile(string $fileId, string $accessToken, ?string $suggestedTarget, ?string $relativeTarget, bool $overwriteRelativeTarget, int $size, RequestInterface $request): ResponseInterface
-    {
+    public function putRelativeFile(
+        string $fileId,
+        string $accessToken,
+        ?string $suggestedTarget,
+        ?string $relativeTarget,
+        bool $overwriteRelativeTarget,
+        int $size,
+        RequestInterface $request
+    ): ResponseInterface {
         if ((null !== $suggestedTarget) && (null !== $relativeTarget)) {
             return $this
                 ->psr17
@@ -259,8 +280,9 @@ final class Wopi implements WopiInterface
             // If it starts with a dot...
             if (0 === strpos($suggestedTarget, '.', 0)) {
                 $document = $this->documentManager->findByDocumentId($fileId);
+                $filename = pathinfo($this->documentManager->getBasename($document), PATHINFO_FILENAME);
 
-                $suggestedTarget = sprintf('%s%s', $document->getFilename(), $suggestedTarget);
+                $suggestedTarget = sprintf('%s%s', $filename, $suggestedTarget);
             }
 
             $target = $suggestedTarget;
@@ -284,11 +306,16 @@ final class Wopi implements WopiInterface
              */
             if (null !== $document) {
                 if (false === $overwriteRelativeTarget) {
+                    $extension = pathinfo($this->documentManager->getBasename($document), PATHINFO_EXTENSION);
+
                     return $this
                         ->psr17
                         ->createResponse(409)
                         ->withHeader('Content-Type', 'application/json')
-                        ->withHeader(WopiInterface::HEADER_VALID_RELATIVE_TARGET, sprintf('%s.%s', uniqid(), $document->getExtension()));
+                        ->withHeader(
+                            WopiInterface::HEADER_VALID_RELATIVE_TARGET,
+                            sprintf('%s.%s', uniqid(), $extension)
+                        );
                 }
 
                 if ($this->documentManager->hasLock($document)) {
@@ -304,14 +331,13 @@ final class Wopi implements WopiInterface
 
         $pathInfo = pathinfo($target);
 
-        $new = $this
-            ->documentManager
-            ->create([
-                'name' => $pathInfo['filename'],
-                'extension' => $pathInfo['extension'],
-                'content' => (string) $request->getBody(),
-                'size' => $request->getHeaderLine(WopiInterface::HEADER_SIZE),
-            ]);
+        $new = $this->documentManager->create([
+            'basename' => $target,
+            'name' => $pathInfo['filename'],
+            'extension' => $pathInfo['extension'],
+            'content' => (string) $request->getBody(),
+            'size' => $request->getHeaderLine(WopiInterface::HEADER_SIZE),
+        ]);
 
         $this->documentManager->write($new);
 
@@ -323,7 +349,7 @@ final class Wopi implements WopiInterface
                     ->generate(
                         'checkFileInfo',
                         [
-                            'fileId' => $new->getFileId(),
+                            'fileId' => $this->documentManager->getDocumentId($new),
                         ],
                         RouterInterface::ABSOLUTE_URL
                     )
@@ -333,10 +359,10 @@ final class Wopi implements WopiInterface
             ]));
 
         $properties = [
-            'Name' => $new->getBasename(),
+            'Name' => $this->documentManager->getBasename($new),
             'Url' => (string) $uri,
-            'HostEditUrl' => $new->getId(),
-            'HostViewUrl' => $new->getId(),
+            'HostEditUrl' => $this->documentManager->getDocumentId($new),
+            'HostViewUrl' => $this->documentManager->getDocumentId($new),
         ];
 
         return $this
@@ -359,15 +385,24 @@ final class Wopi implements WopiInterface
             ->createResponse();
     }
 
-    public function refreshLock(string $fileId, string $accessToken, string $xWopiLock, RequestInterface $request): ResponseInterface
-    {
+    public function refreshLock(
+        string $fileId,
+        string $accessToken,
+        string $xWopiLock,
+        RequestInterface $request
+    ): ResponseInterface {
         $this->unlock($fileId, $accessToken, $xWopiLock, $request);
 
         return $this->lock($fileId, $accessToken, $xWopiLock, $request);
     }
 
-    public function renameFile(string $fileId, string $accessToken, string $xWopiLock, string $xWopiRequestedName, RequestInterface $request): ResponseInterface
-    {
+    public function renameFile(
+        string $fileId,
+        string $accessToken,
+        string $xWopiLock,
+        string $xWopiRequestedName,
+        RequestInterface $request
+    ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
 
         if (null === $document) {
@@ -385,8 +420,7 @@ final class Wopi implements WopiInterface
             }
         }
 
-        $document->setFilename($xWopiRequestedName);
-        $this->documentManager->write($document);
+        $this->documentManager->write($document, ['filename' => $xWopiRequestedName]);
 
         $data = [
             'Name' => $xWopiRequestedName,
@@ -401,8 +435,12 @@ final class Wopi implements WopiInterface
             );
     }
 
-    public function unlock(string $fileId, string $accessToken, string $xWopiLock, RequestInterface $request): ResponseInterface
-    {
+    public function unlock(
+        string $fileId,
+        string $accessToken,
+        string $xWopiLock,
+        RequestInterface $request
+    ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
         $version = $this->documentManager->getVersion($document);
 
@@ -434,8 +472,13 @@ final class Wopi implements WopiInterface
             );
     }
 
-    public function unlockAndRelock(string $fileId, string $accessToken, string $xWopiLock, string $xWopiOldLock, RequestInterface $request): ResponseInterface
-    {
+    public function unlockAndRelock(
+        string $fileId,
+        string $accessToken,
+        string $xWopiLock,
+        string $xWopiOldLock,
+        RequestInterface $request
+    ): ResponseInterface {
         $this->unlock($fileId, $accessToken, $xWopiOldLock, $request);
 
         return $this->lock($fileId, $accessToken, $xWopiLock, $request);
