@@ -20,6 +20,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 use function strlen;
 
+use const PATHINFO_EXTENSION;
+use const PATHINFO_FILENAME;
+
 final class Wopi implements WopiInterface
 {
     private CacheItemPoolInterface $cache;
