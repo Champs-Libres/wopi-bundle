@@ -1,13 +1,13 @@
 {
     "name": "champs-libres/wopi-bundle",
-    "type": "symfony-bundle",
     "description": "A bundle providing routes and glue code between Symfony and a WOPI connector.",
+    "license": "MIT",
+    "type": "symfony-bundle",
     "keywords": [
         "wopi",
         "symfony-bundle"
     ],
     "homepage": "http://github.com/champs-libres/wopi-bundle",
-    "license": "MIT",
     "require": {
         "php": ">= 7.4",
         "ext-json": "*",
@@ -25,11 +25,18 @@
         "nyholm/psr7": "^1.4",
         "phpspec/phpspec": "^7.1"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "ChampsLibres\\WopiBundle\\": "src/"
         }
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true,
+            "phpro/grumphp": true,
+            "ergebnis/composer-normalize": true
+        }
+    }
 }
