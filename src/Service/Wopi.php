@@ -11,15 +11,18 @@ namespace ChampsLibres\WopiBundle\Service;
 
 use ChampsLibres\WopiLib\Contract\Service\DocumentManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
+use DateTimeImmutable;
+use DateTimeInterface;
 use loophp\psr17\Psr17Interface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\RequestInterface;
+
 use Psr\Http\Message\ResponseInterface;
+
+use RuntimeException;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-
 use function strlen;
-
 use const PATHINFO_EXTENSION;
 use const PATHINFO_FILENAME;
 
@@ -86,6 +89,8 @@ final class Wopi implements WopiInterface
                     ],
                     'SHA256' => $this->documentManager->getSha256($document),
                     'UserInfo' => (string) $this->cache->getItem($userCacheKey)->get(),
+                    'LastModifiedTime' => $this->documentManager->getLastModifiedDate($document)
+                        ->format(DateTimeInterface::ATOM),
                 ]
             )));
     }
@@ -237,6 +242,37 @@ final class Wopi implements WopiInterface
                     ->withHeader(
                         WopiInterface::HEADER_ITEM_VERSION,
                         sprintf('v%s', $version)
+                    );
+            }
+        }
+
+        // for collabora online editor, check timestamp if present
+        if ($request->hasHeader('x-lool-wopi-timestamp')) {
+            $date = DateTimeImmutable::createFromFormat(
+                DateTimeImmutable::ATOM,
+                $request->getHeader('x-lool-wopi-timestamp')[0]
+            );
+
+            if (false === $date) {
+                throw new RuntimeException('Error parsing date: ' . implode('', DateTimeImmutable::getLastErrors()));
+            }
+
+            if ($this->documentManager->getLastModifiedDate($document) > $date) {
+                return $this
+                    ->psr17
+                    ->createResponse(409)
+                    ->withHeader(
+                        WopiInterface::HEADER_LOCK,
+                        $currentLock
+                    )
+                    ->withHeader(
+                        WopiInterface::HEADER_ITEM_VERSION,
+                        sprintf('v%s', $version)
+                    )
+                    ->withBody(
+                        $this->psr17->createStream(
+                            json_encode(['COOLStatusCode' => 1010])
+                        )
                     );
             }
         }
