@@ -20,9 +20,12 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 use RuntimeException;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+
 use function strlen;
+
 use const PATHINFO_EXTENSION;
 use const PATHINFO_FILENAME;
 
@@ -38,18 +41,25 @@ final class Wopi implements WopiInterface
 
     private TokenStorageInterface $tokenStorage;
 
+    /**
+     * @var string|"version"|"timestamp"
+     */
+    private string $versionManagement;
+
     public function __construct(
         CacheItemPoolInterface $cache,
         DocumentManagerInterface $documentManager,
         Psr17Interface $psr17,
         RouterInterface $router,
-        TokenStorageInterface $tokenStorage
+        TokenStorageInterface $tokenStorage,
+        ParameterBagInterface $parameterBag
     ) {
         $this->cache = $cache;
         $this->documentManager = $documentManager;
         $this->psr17 = $psr17;
         $this->router = $router;
         $this->tokenStorage = $tokenStorage;
+        $this->versionManagement = $parameterBag->get('wopi')['version_management'];
     }
 
     public function checkFileInfo(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
@@ -283,11 +293,12 @@ final class Wopi implements WopiInterface
             [
                 'content' => $body,
                 'size' => (string) strlen($body),
+                'last-modified' => new DateTimeImmutable('now'),
             ]
         );
         $version = $this->documentManager->getVersion($document);
 
-        return $this
+        $response = $this
             ->psr17
             ->createResponse()
             ->withHeader(
@@ -298,6 +309,17 @@ final class Wopi implements WopiInterface
                 WopiInterface::HEADER_ITEM_VERSION,
                 sprintf('v%s', $version)
             );
+
+        if ('timestamp' === $this->versionManagement) {
+            $response
+                ->withBody(
+                    json_encode([
+                        'LastModifiedTime' => $this->documentManager->getLastModifiedDate($document)->format(DateTimeInterface::ATOM)
+                    ])
+                );
+        }
+
+        return $response;
     }
 
     public function putRelativeFile(
