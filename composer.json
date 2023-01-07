@@ -23,13 +23,22 @@
         "drupol/php-conventions": "^5.0",
         "friends-of-phpspec/phpspec-code-coverage": "^6.1",
         "nyholm/psr7": "^1.4",
-        "phpspec/phpspec": "^7.1"
+        "phpspec/phpspec": "^7.1",
+        "phpspec/prophecy": "^1.16",
+        "phpspec/prophecy-phpunit": "^2.0",
+        "phpunit/phpunit": "^9.5",
+        "symfony/phpunit-bridge": "^6.2"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "ChampsLibres\\WopiBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ChampsLibres\\WopiBundle\\Tests\\": "tests/"
         }
     },
     "config": {

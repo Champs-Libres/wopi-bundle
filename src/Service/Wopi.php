@@ -9,20 +9,22 @@ declare(strict_types=1);
 
 namespace ChampsLibres\WopiBundle\Service;
 
+use ChampsLibres\WopiBundle\Service\Wopi\PutFile;
 use ChampsLibres\WopiLib\Contract\Service\DocumentManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
-use DateTimeImmutable;
 use DateTimeInterface;
-use loophp\psr17\Psr17Interface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Http\Message\RequestInterface;
 
+use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 
-use RuntimeException;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\UriFactoryInterface;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use function strlen;
+
 use const PATHINFO_EXTENSION;
 use const PATHINFO_FILENAME;
 
@@ -32,37 +34,54 @@ final class Wopi implements WopiInterface
 
     private DocumentManagerInterface $documentManager;
 
-    private Psr17Interface $psr17;
+    private PutFile $putFileExecutor;
+
+    private ResponseFactoryInterface $responseFactory;
 
     private RouterInterface $router;
 
+    private StreamFactoryInterface $streamFactory;
+
     private TokenStorageInterface $tokenStorage;
+
+    private UriFactoryInterface $uriFactory;
 
     public function __construct(
         CacheItemPoolInterface $cache,
         DocumentManagerInterface $documentManager,
-        Psr17Interface $psr17,
+        ResponseFactoryInterface $responseFactory,
         RouterInterface $router,
-        TokenStorageInterface $tokenStorage
+        StreamFactoryInterface $streamFactory,
+        TokenStorageInterface $tokenStorage,
+        UriFactoryInterface $uriFactory,
+        PutFile $putFile
     ) {
         $this->cache = $cache;
         $this->documentManager = $documentManager;
-        $this->psr17 = $psr17;
+        $this->responseFactory = $responseFactory;
+        $this->streamFactory = $streamFactory;
         $this->router = $router;
         $this->tokenStorage = $tokenStorage;
+        $this->uriFactory = $uriFactory;
+        $this->putFileExecutor = $putFile;
     }
 
     public function checkFileInfo(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
     {
         $document = $this->documentManager->findByDocumentId($fileId);
+
+        if (null === $document) {
+            return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
         $userIdentifier = $this->tokenStorage->getToken()->getUser()->getUserIdentifier();
         $userCacheKey = sprintf('wopi_putUserInfo_%s', $this->tokenStorage->getToken()->getUser()->getUserIdentifier());
 
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse()
             ->withHeader('Content-Type', 'application/json')
-            ->withBody($this->psr17->createStream((string) json_encode(
+            ->withBody($this->streamFactory->createStream((string) json_encode(
                 [
                     'BaseFileName' => $this->documentManager->getBasename($document),
                     'OwnerId' => 'Symfony',
@@ -97,12 +116,16 @@ final class Wopi implements WopiInterface
 
     public function deleteFile(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
     {
-        $this->documentManager->remove($this->documentManager->findByDocumentId($fileId));
+        $document = $this->documentManager->findByDocumentId($fileId);
 
-        // @TODO Check if the file is properly deleted.
+        if (null === $document) {
+            return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
+        $this->documentManager->remove($document);
 
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse(200);
     }
 
@@ -112,7 +135,7 @@ final class Wopi implements WopiInterface
         RequestInterface $request
     ): ResponseInterface {
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse(501);
     }
 
@@ -122,11 +145,16 @@ final class Wopi implements WopiInterface
         RequestInterface $request
     ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
+
+        if (null === $document) {
+            return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
         $revision = $this->documentManager->getVersion($document);
         $content = $this->documentManager->read($document);
 
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse()
             ->withHeader(
                 WopiInterface::HEADER_ITEM_VERSION,
@@ -138,7 +166,7 @@ final class Wopi implements WopiInterface
             )
             ->withHeader(
                 'Content-Length',
-                $this->documentManager->getSize($document)
+                (string) $this->documentManager->getSize($document)
             )
             ->withHeader(
                 'Content-Disposition',
@@ -151,15 +179,19 @@ final class Wopi implements WopiInterface
     {
         $document = $this->documentManager->findByDocumentId($fileId);
 
+        if (null === $document) {
+            return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
         if ($this->documentManager->hasLock($document)) {
             return $this
-                ->psr17
+                ->responseFactory
                 ->createResponse()
                 ->withHeader(WopiInterface::HEADER_LOCK, $this->documentManager->getLock($document));
         }
 
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse(404)
             ->withHeader(WopiInterface::HEADER_LOCK, '');
     }
@@ -167,7 +199,7 @@ final class Wopi implements WopiInterface
     public function getShareUrl(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
     {
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse(501);
     }
 
@@ -178,6 +210,11 @@ final class Wopi implements WopiInterface
         RequestInterface $request
     ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
+
+        if (null === $document) {
+            return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
         $version = $this->documentManager->getVersion($document);
 
         if ($this->documentManager->hasLock($document)) {
@@ -186,7 +223,7 @@ final class Wopi implements WopiInterface
             }
 
             return $this
-                ->psr17
+                ->responseFactory
                 ->createResponse(409)
                 ->withHeader(WopiInterface::HEADER_LOCK, $currentLock)
                 ->withHeader(
@@ -198,7 +235,7 @@ final class Wopi implements WopiInterface
         $this->documentManager->lock($document, $xWopiLock);
 
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse()
             ->withHeader(
                 WopiInterface::HEADER_ITEM_VERSION,
@@ -213,91 +250,7 @@ final class Wopi implements WopiInterface
         string $xWopiEditors,
         RequestInterface $request
     ): ResponseInterface {
-        $document = $this->documentManager->findByDocumentId($fileId);
-        $version = $this->documentManager->getVersion($document);
-
-        // File is unlocked
-        if (false === $this->documentManager->hasLock($document)) {
-            if (0 !== $this->documentManager->getSize($document)) {
-                return $this
-                    ->psr17
-                    ->createResponse(409)
-                    ->withHeader(
-                        WopiInterface::HEADER_ITEM_VERSION,
-                        sprintf('v%s', $version)
-                    );
-            }
-        }
-
-        // File is locked
-        if ($this->documentManager->hasLock($document)) {
-            if ($xWopiLock !== $currentLock = $this->documentManager->getLock($document)) {
-                return $this
-                    ->psr17
-                    ->createResponse(409)
-                    ->withHeader(
-                        WopiInterface::HEADER_LOCK,
-                        $currentLock
-                    )
-                    ->withHeader(
-                        WopiInterface::HEADER_ITEM_VERSION,
-                        sprintf('v%s', $version)
-                    );
-            }
-        }
-
-        // for collabora online editor, check timestamp if present
-        if ($request->hasHeader('x-lool-wopi-timestamp')) {
-            $date = DateTimeImmutable::createFromFormat(
-                DateTimeImmutable::ATOM,
-                $request->getHeader('x-lool-wopi-timestamp')[0]
-            );
-
-            if (false === $date) {
-                throw new RuntimeException('Error parsing date: ' . implode('', DateTimeImmutable::getLastErrors()));
-            }
-
-            if ($this->documentManager->getLastModifiedDate($document) > $date) {
-                return $this
-                    ->psr17
-                    ->createResponse(409)
-                    ->withHeader(
-                        WopiInterface::HEADER_LOCK,
-                        $currentLock
-                    )
-                    ->withHeader(
-                        WopiInterface::HEADER_ITEM_VERSION,
-                        sprintf('v%s', $version)
-                    )
-                    ->withBody(
-                        $this->psr17->createStream(
-                            json_encode(['COOLStatusCode' => 1010])
-                        )
-                    );
-            }
-        }
-
-        $body = (string) $request->getBody();
-        $this->documentManager->write(
-            $document,
-            [
-                'content' => $body,
-                'size' => (string) strlen($body),
-            ]
-        );
-        $version = $this->documentManager->getVersion($document);
-
-        return $this
-            ->psr17
-            ->createResponse()
-            ->withHeader(
-                WopiInterface::HEADER_LOCK,
-                $xWopiLock
-            )
-            ->withHeader(
-                WopiInterface::HEADER_ITEM_VERSION,
-                sprintf('v%s', $version)
-            );
+        return ($this->putFileExecutor)($fileId, $accessToken, $xWopiLock, $xWopiEditors, $request);
     }
 
     public function putRelativeFile(
@@ -309,17 +262,24 @@ final class Wopi implements WopiInterface
         int $size,
         RequestInterface $request
     ): ResponseInterface {
-        if ((null !== $suggestedTarget) && (null !== $relativeTarget)) {
+        if ((null === $suggestedTarget) && (null === $relativeTarget)) {
             return $this
-                ->psr17
-                ->createResponse(400);
+                ->responseFactory
+                ->createResponse(400)
+                ->withBody($this->streamFactory->createStream((string) json_encode([
+                    'message' => 'target is null',
+                ])));
         }
 
         if (null !== $suggestedTarget) {
             // If it starts with a dot...
             if (0 === strpos($suggestedTarget, '.', 0)) {
                 $document = $this->documentManager->findByDocumentId($fileId);
-                $filename = pathinfo($this->documentManager->getBasename($document), PATHINFO_FILENAME);
+
+                if (null === $document) {
+                    return $this->makeDocumentNotFoundResponse();
+                }
+                $filename = pathinfo($this->documentManager->getBasename($document), PATHINFO_EXTENSION | PATHINFO_FILENAME);
 
                 $suggestedTarget = sprintf('%s%s', $filename, $suggestedTarget);
             }
@@ -348,7 +308,7 @@ final class Wopi implements WopiInterface
                     $extension = pathinfo($this->documentManager->getBasename($document), PATHINFO_EXTENSION);
 
                     return $this
-                        ->psr17
+                        ->responseFactory
                         ->createResponse(409)
                         ->withHeader('Content-Type', 'application/json')
                         ->withHeader(
@@ -359,7 +319,7 @@ final class Wopi implements WopiInterface
 
                 if ($this->documentManager->hasLock($document)) {
                     return $this
-                        ->psr17
+                        ->responseFactory
                         ->createResponse(409)
                         ->withHeader(WopiInterface::HEADER_LOCK, $this->documentManager->getLock($document));
                 }
@@ -368,7 +328,7 @@ final class Wopi implements WopiInterface
             $target = $relativeTarget;
         }
 
-        $pathInfo = pathinfo($target);
+        $pathInfo = pathinfo($target, PATHINFO_EXTENSION | PATHINFO_FILENAME);
 
         $new = $this->documentManager->create([
             'basename' => $target,
@@ -381,7 +341,7 @@ final class Wopi implements WopiInterface
         $this->documentManager->write($new);
 
         $uri = $this
-            ->psr17
+            ->uriFactory
             ->createUri(
                 $this
                     ->router
@@ -405,10 +365,10 @@ final class Wopi implements WopiInterface
         ];
 
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse()
             ->withHeader('Content-Type', 'application/json')
-            ->withBody($this->psr17->createStream((string) json_encode($properties)));
+            ->withBody($this->streamFactory->createStream((string) json_encode($properties)));
     }
 
     public function putUserInfo(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
@@ -420,7 +380,7 @@ final class Wopi implements WopiInterface
         $this->cache->save($cacheItem);
 
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse();
     }
 
@@ -445,15 +405,13 @@ final class Wopi implements WopiInterface
         $document = $this->documentManager->findByDocumentId($fileId);
 
         if (null === $document) {
-            return $this
-                ->psr17
-                ->createResponse(404);
+            return $this->makeDocumentNotFoundResponse($fileId);
         }
 
         if ($this->documentManager->hasLock($document)) {
             if ($xWopiLock !== $currentLock = $this->documentManager->getLock($document)) {
                 return $this
-                    ->psr17
+                    ->responseFactory
                     ->createResponse(409)
                     ->withHeader(WopiInterface::HEADER_LOCK, $currentLock);
             }
@@ -466,11 +424,11 @@ final class Wopi implements WopiInterface
         ];
 
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse(200)
             ->withHeader('Content-Type', 'application/json')
             ->withBody(
-                $this->psr17->createStream((string) json_encode($data))
+                $this->streamFactory->createStream((string) json_encode($data))
             );
     }
 
@@ -481,11 +439,16 @@ final class Wopi implements WopiInterface
         RequestInterface $request
     ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
+
+        if (null === $document) {
+            return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
         $version = $this->documentManager->getVersion($document);
 
         if (!$this->documentManager->hasLock($document)) {
             return $this
-                ->psr17
+                ->responseFactory
                 ->createResponse(409)
                 ->withHeader(WopiInterface::HEADER_LOCK, '');
         }
@@ -494,7 +457,7 @@ final class Wopi implements WopiInterface
 
         if ($currentLock !== $xWopiLock) {
             return $this
-                ->psr17
+                ->responseFactory
                 ->createResponse(409)
                 ->withHeader(WopiInterface::HEADER_LOCK, $currentLock);
         }
@@ -502,7 +465,7 @@ final class Wopi implements WopiInterface
         $this->documentManager->deleteLock($document);
 
         return $this
-            ->psr17
+            ->responseFactory
             ->createResponse()
             ->withHeader(WopiInterface::HEADER_LOCK, '')
             ->withHeader(
@@ -521,5 +484,13 @@ final class Wopi implements WopiInterface
         $this->unlock($fileId, $accessToken, $xWopiOldLock, $request);
 
         return $this->lock($fileId, $accessToken, $xWopiLock, $request);
+    }
+
+    private function makeDocumentNotFoundResponse(string $fileId): ResponseInterface
+    {
+        return $this->responseFactory->createResponse(404)
+            ->withBody($this->streamFactory->createStream((string) json_encode([
+                'message' => "Document with id {$fileId} not found",
+            ])));
     }
 }
