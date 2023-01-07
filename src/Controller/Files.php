@@ -16,9 +16,11 @@ use loophp\psr17\Psr17Interface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 use function array_key_exists;
+use function is_array;
 
 /**
  * Class Files.
@@ -27,6 +29,8 @@ use function array_key_exists;
  */
 final class Files
 {
+    private LoggerInterface $logger;
+
     private Psr17Interface $psr17;
 
     private WopiInterface $wopi;
@@ -34,10 +38,12 @@ final class Files
     private ProofValidatorInterface $wopiProofValidator;
 
     public function __construct(
+        LoggerInterface $logger,
         WopiInterface $wopi,
         ProofValidatorInterface $wopiProofValidator,
         Psr17Interface $psr17
     ) {
+        $this->logger = $logger;
         $this->wopi = $wopi;
         $this->wopiProofValidator = $wopiProofValidator;
         $this->psr17 = $psr17;
@@ -46,9 +52,7 @@ final class Files
     public function checkFileInfo(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -67,9 +71,7 @@ final class Files
     public function deleteFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -88,9 +90,7 @@ final class Files
     public function enumerateAncestors(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -109,9 +109,7 @@ final class Files
     public function getFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -130,9 +128,7 @@ final class Files
     public function getLock(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -151,9 +147,7 @@ final class Files
     public function getShareUrl(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -172,9 +166,7 @@ final class Files
     public function lock(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -194,9 +186,7 @@ final class Files
     public function putFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -217,9 +207,7 @@ final class Files
     public function putRelativeFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         $suggestedTarget = $request->hasHeader(WopiInterface::HEADER_SUGGESTED_TARGET) ?
@@ -252,9 +240,7 @@ final class Files
     public function putUserInfo(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -273,9 +259,7 @@ final class Files
     public function refreshLock(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -295,9 +279,7 @@ final class Files
     public function renameFile(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         $requestedName = $request->hasHeader(WopiInterface::HEADER_REQUESTED_NAME) ?
@@ -328,9 +310,7 @@ final class Files
     public function unlock(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -350,9 +330,7 @@ final class Files
     public function unlockAndRelock(string $fileId, RequestInterface $request): ResponseInterface
     {
         if (!$this->wopiProofValidator->isValid($request)) {
-            return $this
-                ->psr17
-                ->createResponse(500);
+            return $this->onProofValidationFailed();
         }
 
         try {
@@ -377,10 +355,27 @@ final class Files
         parse_str($uri->getQuery(), $output);
 
         if (!array_key_exists($param, $output)) {
-            // TODO
             throw new Exception('No param found.');
         }
 
-        return $output[$param];
+        $r = $output[$param];
+
+        if (is_array($r)) {
+            throw new Exception('Param is an array, not a string');
+        }
+
+        return $r;
+    }
+
+    private function onProofValidationFailed(): ResponseInterface
+    {
+        $this->logger->error('[wopi] Proof validation failed');
+
+        return $this
+            ->psr17
+            ->createResponse(500)
+            ->withBody($this->psr17->createStream((string) json_encode([
+                'message' => 'Proof validation failed',
+            ])));
     }
 }
