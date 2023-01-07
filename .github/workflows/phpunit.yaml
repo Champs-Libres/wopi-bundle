@@ -1,0 +1,20 @@
+name: CI-old-php
+
+on: [push]
+
+jobs:
+    build-test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v3
+
+            - uses: php-actions/composer@v6
+
+            - name: PHPUnit Tests
+              uses: php-actions/phpunit@v3
+              with:
+                  php_extensions: mbstring json
+                  bootstrap: vendor/autoload.php
+                  configuration: phpunit.xml
+                  php_version: "7.4"
