@@ -21,7 +21,7 @@ use function strlen;
 
 class PutFile
 {
-    private const LOG_PREFIX = '[Wopi::PutFile] ';
+    private const LOG_PREFIX = '[wopi][wopi/PutFile] ';
 
     private DocumentManagerInterface $documentManager;
 
