@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace ChampsLibres\WopiBundle\Service;
 
+use ChampsLibres\WopiBundle\Service\Wopi\PutFile;
 use ChampsLibres\WopiLib\Contract\Service\DocumentManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use DateTimeImmutable;
@@ -35,7 +36,9 @@ final class Wopi implements WopiInterface
 
     private DocumentManagerInterface $documentManager;
 
-    private Psr17Interface $psr17;
+    private PutFile $putFileExecutor;
+
+    private ResponseFactoryInterface $responseFactory;
 
     private RouterInterface $router;
 
@@ -52,14 +55,16 @@ final class Wopi implements WopiInterface
         Psr17Interface $psr17,
         RouterInterface $router,
         TokenStorageInterface $tokenStorage,
-        ParameterBagInterface $parameterBag
+        UriFactoryInterface $uriFactory,
+        PutFile $putFile
     ) {
         $this->cache = $cache;
         $this->documentManager = $documentManager;
         $this->psr17 = $psr17;
         $this->router = $router;
         $this->tokenStorage = $tokenStorage;
-        $this->versionManagement = $parameterBag->get('wopi')['version_management'];
+        $this->uriFactory = $uriFactory;
+        $this->putFileExecutor = $putFile;
     }
 
     public function checkFileInfo(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
@@ -223,103 +228,7 @@ final class Wopi implements WopiInterface
         string $xWopiEditors,
         RequestInterface $request
     ): ResponseInterface {
-        $document = $this->documentManager->findByDocumentId($fileId);
-        $version = $this->documentManager->getVersion($document);
-
-        // File is unlocked
-        if (false === $this->documentManager->hasLock($document)) {
-            if (0 !== $this->documentManager->getSize($document)) {
-                return $this
-                    ->psr17
-                    ->createResponse(409)
-                    ->withHeader(
-                        WopiInterface::HEADER_ITEM_VERSION,
-                        sprintf('v%s', $version)
-                    );
-            }
-        }
-
-        // File is locked
-        if ($this->documentManager->hasLock($document)) {
-            if ($xWopiLock !== $currentLock = $this->documentManager->getLock($document)) {
-                return $this
-                    ->psr17
-                    ->createResponse(409)
-                    ->withHeader(
-                        WopiInterface::HEADER_LOCK,
-                        $currentLock
-                    )
-                    ->withHeader(
-                        WopiInterface::HEADER_ITEM_VERSION,
-                        sprintf('v%s', $version)
-                    );
-            }
-        }
-
-        // for collabora online editor, check timestamp if present
-        if ($request->hasHeader('x-lool-wopi-timestamp')) {
-            $date = DateTimeImmutable::createFromFormat(
-                DateTimeImmutable::ATOM,
-                $request->getHeader('x-lool-wopi-timestamp')[0]
-            );
-
-            if (false === $date) {
-                throw new RuntimeException('Error parsing date: ' . implode('', DateTimeImmutable::getLastErrors()));
-            }
-
-            if ($this->documentManager->getLastModifiedDate($document) > $date) {
-                return $this
-                    ->psr17
-                    ->createResponse(409)
-                    ->withHeader(
-                        WopiInterface::HEADER_LOCK,
-                        $currentLock
-                    )
-                    ->withHeader(
-                        WopiInterface::HEADER_ITEM_VERSION,
-                        sprintf('v%s', $version)
-                    )
-                    ->withBody(
-                        $this->psr17->createStream(
-                            json_encode(['COOLStatusCode' => 1010])
-                        )
-                    );
-            }
-        }
-
-        $body = (string) $request->getBody();
-        $this->documentManager->write(
-            $document,
-            [
-                'content' => $body,
-                'size' => (string) strlen($body),
-                'last-modified' => new DateTimeImmutable('now'),
-            ]
-        );
-        $version = $this->documentManager->getVersion($document);
-
-        $response = $this
-            ->psr17
-            ->createResponse()
-            ->withHeader(
-                WopiInterface::HEADER_LOCK,
-                $xWopiLock
-            )
-            ->withHeader(
-                WopiInterface::HEADER_ITEM_VERSION,
-                sprintf('v%s', $version)
-            );
-
-        if ('timestamp' === $this->versionManagement) {
-            $response
-                ->withBody(
-                    json_encode([
-                        'LastModifiedTime' => $this->documentManager->getLastModifiedDate($document)->format(DateTimeInterface::ATOM)
-                    ])
-                );
-        }
-
-        return $response;
+        return ($this->putFileExecutor)($fileId, $accessToken, $xWopiLock, $xWopiEditors, $request);
     }
 
     public function putRelativeFile(

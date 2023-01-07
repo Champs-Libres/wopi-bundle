@@ -77,5 +77,8 @@ return static function (ContainerConfigurator $container) {
         ->set(Wopi::class);
 
     $services
+        ->set(Wopi\PutFile::class);
+
+    $services
         ->alias(WopiInterface::class, Wopi::class);
 };
