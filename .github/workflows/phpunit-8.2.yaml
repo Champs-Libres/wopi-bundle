@@ -1,4 +1,4 @@
-name: CI-old-php
+name: CI-php-7.4
 
 on: [push]
 
@@ -10,6 +10,8 @@ jobs:
             - uses: actions/checkout@v3
 
             - uses: php-actions/composer@v6
+              with:
+                  php_version: "8.2"
 
             - name: PHPUnit Tests
               uses: php-actions/phpunit@v3
@@ -17,4 +19,4 @@ jobs:
                   php_extensions: mbstring json
                   bootstrap: vendor/autoload.php
                   configuration: phpunit.xml
-                  php_version: "7.4"
+                  php_version: "8.2"
