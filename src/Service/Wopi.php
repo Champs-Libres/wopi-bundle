@@ -9,30 +9,40 @@ declare(strict_types=1);
 
 namespace ChampsLibres\WopiBundle\Service;
 
+use ChampsLibres\WopiBundle\Contracts\AuthorizationManagerInterface;
+use ChampsLibres\WopiBundle\Contracts\UserManagerInterface;
 use ChampsLibres\WopiBundle\Service\Wopi\PutFile;
 use ChampsLibres\WopiLib\Contract\Service\DocumentManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use DateTimeInterface;
+use LogicException;
 use Psr\Cache\CacheItemPoolInterface;
+
 use Psr\Http\Message\RequestInterface;
-
 use Psr\Http\Message\ResponseFactoryInterface;
-use Psr\Http\Message\ResponseInterface;
 
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Response;
+
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use const PATHINFO_EXTENSION;
 use const PATHINFO_FILENAME;
 
 final class Wopi implements WopiInterface
 {
+    private const LOG_PREFIX = '[wopi][Wopi] ';
+
+    private AuthorizationManagerInterface $authorizationManager;
+
     private CacheItemPoolInterface $cache;
 
     private DocumentManagerInterface $documentManager;
+
+    private LoggerInterface $logger;
 
     private PutFile $putFileExecutor;
 
@@ -42,76 +52,105 @@ final class Wopi implements WopiInterface
 
     private StreamFactoryInterface $streamFactory;
 
-    private TokenStorageInterface $tokenStorage;
-
     private UriFactoryInterface $uriFactory;
 
+    private UserManagerInterface $userManager;
+
     public function __construct(
+        AuthorizationManagerInterface $authorizationManager,
         CacheItemPoolInterface $cache,
         DocumentManagerInterface $documentManager,
+        LoggerInterface $logger,
         ResponseFactoryInterface $responseFactory,
         RouterInterface $router,
         StreamFactoryInterface $streamFactory,
-        TokenStorageInterface $tokenStorage,
         UriFactoryInterface $uriFactory,
+        UserManagerInterface $userManager,
         PutFile $putFile
     ) {
+        $this->authorizationManager = $authorizationManager;
         $this->cache = $cache;
         $this->documentManager = $documentManager;
+        $this->logger = $logger;
         $this->responseFactory = $responseFactory;
         $this->streamFactory = $streamFactory;
         $this->router = $router;
-        $this->tokenStorage = $tokenStorage;
         $this->uriFactory = $uriFactory;
+        $this->userManager = $userManager;
         $this->putFileExecutor = $putFile;
     }
 
-    public function checkFileInfo(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
+    /**
+     * @param array<string, string|boolean|int|null> $overrideProperties
+     */
+    public function checkFileInfo(string $fileId, string $accessToken, RequestInterface $request, array $overrideProperties = []): ResponseInterface
     {
+        $userIdentifier = $this->userManager->getUserId($accessToken, $fileId, $request);
+
+        if (null === $userIdentifier && false === $this->userManager->isAnonymousUser($accessToken, $fileId, $request)) {
+            $this->logger->error(self::LOG_PREFIX . 'user not found nor anonymous');
+
+            return $this->responseFactory
+                ->createResponse(404)
+                ->withBody($this->streamFactory->createStream((string) json_encode(['message' => 'user not found nor anonymous'])));
+        }
+
         $document = $this->documentManager->findByDocumentId($fileId);
 
         if (null === $document) {
             return $this->makeDocumentNotFoundResponse($fileId);
         }
 
-        $userIdentifier = $this->tokenStorage->getToken()->getUser()->getUserIdentifier();
-        $userCacheKey = sprintf('wopi_putUserInfo_%s', $this->tokenStorage->getToken()->getUser()->getUserIdentifier());
+        if (!$this->authorizationManager->userCanRead($accessToken, $document, $request)) {
+            $this->logger->info(self::LOG_PREFIX . 'user is not allowed to read document', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
+
+            return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
+                'message' => 'user is not allowed to see this document',
+            ])));
+        }
+
+        $properties = [
+            'BaseFileName' => $this->documentManager->getBasename($document),
+            'OwnerId' => 'Symfony',
+            'Size' => $this->documentManager->getSize($document),
+            'UserId' => $userIdentifier,
+            'ReadOnly' => !$this->authorizationManager->userCanWrite($accessToken, $document, $request),
+            'RestrictedWebViewOnly' => $this->authorizationManager->isRestrictedWebViewOnly($accessToken, $document, $request),
+            'UserCanAttend' => $this->authorizationManager->userCanAttend($accessToken, $document, $request),
+            'UserCanPresent' => $this->authorizationManager->userCanPresent($accessToken, $document, $request),
+            'UserCanRename' => $this->authorizationManager->userCanRename($accessToken, $document, $request),
+            'UserCanWrite' => $this->authorizationManager->userCanWrite($accessToken, $document, $request),
+            'UserCanNotWriteRelative' => $this->authorizationManager->userCannotWriteRelative($accessToken, $document, $request),
+            'SupportsUserInfo' => $userIdentifier !== null,
+            'SupportsDeleteFile' => true,
+            'SupportsLocks' => true,
+            'SupportsGetLock' => true,
+            'SupportsExtendedLockLength' => true,
+            'SupportsUpdate' => true,
+            'SupportsRename' => true,
+            'SupportsFolders' => false,
+            'UserFriendlyName' => $this->userManager->getUserFriendlyName($accessToken, $fileId, $request),
+            'DisablePrint' => false,
+            'AllowExternalMarketplace' => false,
+            'SupportedShareUrlTypes' => [
+                'ReadOnly',
+            ],
+            'SHA256' => $this->documentManager->getSha256($document),
+            'LastModifiedTime' => $this->documentManager->getLastModifiedDate($document)
+                ->format(DateTimeInterface::ATOM),
+        ];
+
+        if (null !== $userIdentifier) {
+            $userCacheKey = sprintf('wopi_putUserInfo_%s', $userIdentifier);
+
+            $properties['UserInfo'] = (string) $this->cache->getItem($userCacheKey)->get();
+        }
 
         return $this
             ->responseFactory
             ->createResponse()
             ->withHeader('Content-Type', 'application/json')
-            ->withBody($this->streamFactory->createStream((string) json_encode(
-                [
-                    'BaseFileName' => $this->documentManager->getBasename($document),
-                    'OwnerId' => 'Symfony',
-                    'Size' => $this->documentManager->getSize($document),
-                    'UserId' => $userIdentifier,
-                    'ReadOnly' => false,
-                    'UserCanAttend' => true,
-                    'UserCanPresent' => true,
-                    'UserCanRename' => true,
-                    'UserCanWrite' => true,
-                    'UserCanNotWriteRelative' => false,
-                    'SupportsUserInfo' => true,
-                    'SupportsDeleteFile' => true,
-                    'SupportsLocks' => true,
-                    'SupportsGetLock' => true,
-                    'SupportsExtendedLockLength' => true,
-                    'UserFriendlyName' => $userIdentifier,
-                    'SupportsUpdate' => true,
-                    'SupportsRename' => true,
-                    'DisablePrint' => false,
-                    'AllowExternalMarketplace' => true,
-                    'SupportedShareUrlTypes' => [
-                        'ReadOnly',
-                    ],
-                    'SHA256' => $this->documentManager->getSha256($document),
-                    'UserInfo' => (string) $this->cache->getItem($userCacheKey)->get(),
-                    'LastModifiedTime' => $this->documentManager->getLastModifiedDate($document)
-                        ->format(DateTimeInterface::ATOM),
-                ]
-            )));
+            ->withBody($this->streamFactory->createStream((string) json_encode(array_merge($properties, $overrideProperties))));
     }
 
     public function deleteFile(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
@@ -120,6 +159,19 @@ final class Wopi implements WopiInterface
 
         if (null === $document) {
             return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
+        if (
+            false === $this->authorizationManager->userCanDelete($accessToken, $document, $request)
+            || false === $this->authorizationManager->userCanWrite($accessToken, $document, $request)
+        ) {
+            $this->logger->info(
+                self::LOG_PREFIX . 'user is not authorized to delete file',
+                ['fileId' => $fileId, 'userId' => $this->userManager->getUserId($accessToken, $fileId, $request)]
+            );
+
+            return $this->responseFactory
+                ->createResponse(401);
         }
 
         $this->documentManager->remove($document);
@@ -148,6 +200,15 @@ final class Wopi implements WopiInterface
 
         if (null === $document) {
             return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
+        if (!$this->authorizationManager->userCanRead($accessToken, $document, $request)) {
+            $userIdentifier = $this->userManager->getUserId($accessToken, $fileId, $request);
+            $this->logger->info(self::LOG_PREFIX . 'user is not allowed to read document', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
+
+            return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
+                'message' => 'user is not allowed to see this document',
+            ])));
         }
 
         $revision = $this->documentManager->getVersion($document);
@@ -183,6 +244,14 @@ final class Wopi implements WopiInterface
             return $this->makeDocumentNotFoundResponse($fileId);
         }
 
+        if (!$this->authorizationManager->isTokenValid($accessToken, $document, $request)) {
+            $this->logger->info(self::LOG_PREFIX . 'invalid access token', ['fileId' => $fileId]);
+
+            return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
+                'message' => 'invalid access token',
+            ])));
+        }
+
         if ($this->documentManager->hasLock($document)) {
             return $this
                 ->responseFactory
@@ -213,6 +282,14 @@ final class Wopi implements WopiInterface
 
         if (null === $document) {
             return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
+        if (!$this->authorizationManager->isTokenValid($accessToken, $document, $request)) {
+            $this->logger->info(self::LOG_PREFIX . 'invalid access token', ['fileId' => $fileId]);
+
+            return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
+                'message' => 'invalid access token',
+            ])));
         }
 
         $version = $this->documentManager->getVersion($document);
@@ -277,7 +354,7 @@ final class Wopi implements WopiInterface
                 $document = $this->documentManager->findByDocumentId($fileId);
 
                 if (null === $document) {
-                    return $this->makeDocumentNotFoundResponse();
+                    return $this->makeDocumentNotFoundResponse($fileId);
                 }
                 $filename = pathinfo($this->documentManager->getBasename($document), PATHINFO_EXTENSION | PATHINFO_FILENAME);
 
@@ -285,9 +362,7 @@ final class Wopi implements WopiInterface
             }
 
             $target = $suggestedTarget;
-        }
-
-        if (null !== $relativeTarget) {
+        } else {
             $document = $this->documentManager->findByDocumentFilename($relativeTarget);
 
             /**
@@ -328,6 +403,7 @@ final class Wopi implements WopiInterface
             $target = $relativeTarget;
         }
 
+        /** @var array{filename: string, extension: string} $pathInfo */
         $pathInfo = pathinfo($target, PATHINFO_EXTENSION | PATHINFO_FILENAME);
 
         $new = $this->documentManager->create([
@@ -373,7 +449,18 @@ final class Wopi implements WopiInterface
 
     public function putUserInfo(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
     {
-        $userCacheKey = sprintf('wopi_putUserInfo_%s', $this->tokenStorage->getToken()->getUser()->getUserIdentifier());
+        $userIdentifier = $this->userManager->getUserId($accessToken, $fileId, $request);
+
+        if (null === $userIdentifier) {
+            $this->logger->error(self::LOG_PREFIX . 'user identifier not found');
+
+            return $this->responseFactory->createResponse(400)->withBody(
+                $this->streamFactory->createStream((string) json_encode([
+                    'message' => 'user identifier not found',
+                ]))
+            );
+        }
+        $userCacheKey = sprintf('wopi_putUserInfo_%s', $userIdentifier);
 
         $cacheItem = $this->cache->getItem($userCacheKey);
         $cacheItem->set((string) $request->getBody());
@@ -390,6 +477,7 @@ final class Wopi implements WopiInterface
         string $xWopiLock,
         RequestInterface $request
     ): ResponseInterface {
+        // note: the validation of access token is done inside unlock and lock methods
         $this->unlock($fileId, $accessToken, $xWopiLock, $request);
 
         return $this->lock($fileId, $accessToken, $xWopiLock, $request);
@@ -408,6 +496,15 @@ final class Wopi implements WopiInterface
             return $this->makeDocumentNotFoundResponse($fileId);
         }
 
+        if (!$this->authorizationManager->userCanRename($accessToken, $document, $request)) {
+            $userIdentifier = $this->userManager->getUserId($accessToken, $fileId, $request);
+            $this->logger->info(self::LOG_PREFIX . 'user is not allowed to rename', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
+
+            return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
+                'message' => 'user is not allowed to rename',
+            ])));
+        }
+
         if ($this->documentManager->hasLock($document)) {
             if ($xWopiLock !== $currentLock = $this->documentManager->getLock($document)) {
                 return $this
@@ -417,7 +514,7 @@ final class Wopi implements WopiInterface
             }
         }
 
-        $this->documentManager->write($document, ['filename' => $xWopiRequestedName]);
+        $this->documentManager->rename($document, $xWopiRequestedName);
 
         $data = [
             'Name' => $xWopiRequestedName,
@@ -442,6 +539,14 @@ final class Wopi implements WopiInterface
 
         if (null === $document) {
             return $this->makeDocumentNotFoundResponse($fileId);
+        }
+
+        if (!$this->authorizationManager->isTokenValid($accessToken, $document, $request)) {
+            $this->logger->info(self::LOG_PREFIX . 'invalid access token', ['fileId' => $fileId]);
+
+            return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
+                'message' => 'invalid access token',
+            ])));
         }
 
         $version = $this->documentManager->getVersion($document);
@@ -488,6 +593,8 @@ final class Wopi implements WopiInterface
 
     private function makeDocumentNotFoundResponse(string $fileId): ResponseInterface
     {
+        $this->logger->error(self::LOG_PREFIX . 'Document not found', ['fileId' => $fileId]);
+
         return $this->responseFactory->createResponse(404)
             ->withBody($this->streamFactory->createStream((string) json_encode([
                 'message' => "Document with id {$fileId} not found",

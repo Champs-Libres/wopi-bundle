@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ChampsLibres\WopiBundle\Service\Wopi;
 
+use ChampsLibres\WopiBundle\Contracts\AuthorizationManagerInterface;
+use ChampsLibres\WopiBundle\Contracts\UserManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\DocumentManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use DateTimeImmutable;
@@ -23,6 +25,8 @@ class PutFile
 {
     private const LOG_PREFIX = '[wopi][wopi/PutFile] ';
 
+    private AuthorizationManagerInterface $authorizationManager;
+
     private DocumentManagerInterface $documentManager;
 
     private LoggerInterface $logger;
@@ -31,22 +35,28 @@ class PutFile
 
     private StreamFactoryInterface $streamFactory;
 
+    private UserManagerInterface $userManager;
+
     /**
      * @var 'version'|'timestamp'
      */
     private string $versionManagement;
 
     public function __construct(
+        AuthorizationManagerInterface $authorizationManager,
         DocumentManagerInterface $documentManager,
         LoggerInterface $logger,
         ParameterBagInterface $parameterBag,
         ResponseFactoryInterface $responseFactory,
-        StreamFactoryInterface $streamFactory
+        StreamFactoryInterface $streamFactory,
+        UserManagerInterface $userManager
     ) {
         $this->documentManager = $documentManager;
         $this->logger = $logger;
         $this->responseFactory = $responseFactory;
         $this->streamFactory = $streamFactory;
+        $this->userManager = $userManager;
+        $this->authorizationManager = $authorizationManager;
         $this->versionManagement = $parameterBag->get('wopi')['version_management'];
     }
 
@@ -65,6 +75,15 @@ class PutFile
                 ->withBody($this->streamFactory->createStream((string) json_encode([
                     'message' => "Document with id {$fileId} not found",
                 ])));
+        }
+
+        if (!$this->authorizationManager->userCanWrite($accessToken, $document, $request)) {
+            $userIdentifier = $this->userManager->getUserId($accessToken, $fileId, $request);
+            $this->logger->info(self::LOG_PREFIX . 'user is not allowed to write document', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
+
+            return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
+                'message' => 'user is not allowed to write this document',
+            ])));
         }
 
         $version = $this->documentManager->getVersion($document);
@@ -128,7 +147,7 @@ class PutFile
                 $this->logger->error(self::LOG_PREFIX . 'Error parsing date', ['fileId' => $fileId,
                     'date' => $request->getHeader('x-lool-wopi-timestamp')[0], 'errors' => $e]);
 
-                throw new RuntimeException('Error parsing date: ' . implode(', ', array_values($e)));
+                throw new RuntimeException('Error parsing date: ' . implode(', ', $e));
             }
 
             if ($this->documentManager->getLastModifiedDate($document) > $date) {
@@ -139,7 +158,7 @@ class PutFile
                     ->createResponse(409)
                     ->withHeader(
                         WopiInterface::HEADER_LOCK,
-                        $currentLock
+                        $currentLock ?? ''
                     )
                     ->withHeader(
                         WopiInterface::HEADER_ITEM_VERSION,
@@ -163,7 +182,7 @@ class PutFile
             $document,
             [
                 'content' => $body,
-                'size' => (string) strlen($body),
+                'size' => strlen($body),
             ]
         );
         $version = $this->documentManager->getVersion($document);
