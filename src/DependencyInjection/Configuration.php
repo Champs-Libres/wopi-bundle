@@ -25,7 +25,6 @@ final class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
             ->scalarNode('server')->end()
-            ->scalarNode('access_token_ttl')->end()
             ->enumNode('version_management')->values(['version', 'timestamp'])
             ->info('Manager document versioning through version (Office 365) or last modified time (Collabora Online, CODE, etc.)')
             ->defaultValue('timestamp')
