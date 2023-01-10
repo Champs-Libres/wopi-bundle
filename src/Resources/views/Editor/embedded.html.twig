@@ -10,6 +10,11 @@
 
 <form id="office_form" name="office_form" target="office_frame" action="{{ server }}" method="post">
     <input name="access_token" value="{{ access_token }}" type="hidden" />
+    {#
+        reminder: access_token_ttl is a javascript epoch, not a number of seconds; it is the
+        time when the token will expire, not the time to live:
+        https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/rest/concepts#the-access_token_ttl-property
+    #}
     <input name="access_token_ttl" value="{{ access_token_ttl }}" type="hidden" />
 </form>
 
