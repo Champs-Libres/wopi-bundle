@@ -15,7 +15,6 @@ use ChampsLibres\WopiBundle\Service\Wopi\PutFile;
 use ChampsLibres\WopiLib\Contract\Service\DocumentManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use DateTimeInterface;
-use Psr\Cache\CacheItemPoolInterface;
 
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
@@ -37,8 +36,6 @@ final class Wopi implements WopiInterface
 
     private AuthorizationManagerInterface $authorizationManager;
 
-    private CacheItemPoolInterface $cache;
-
     private DocumentManagerInterface $documentManager;
 
     private LoggerInterface $logger;
@@ -57,7 +54,6 @@ final class Wopi implements WopiInterface
 
     public function __construct(
         AuthorizationManagerInterface $authorizationManager,
-        CacheItemPoolInterface $cache,
         DocumentManagerInterface $documentManager,
         LoggerInterface $logger,
         ResponseFactoryInterface $responseFactory,
@@ -68,7 +64,6 @@ final class Wopi implements WopiInterface
         PutFile $putFile
     ) {
         $this->authorizationManager = $authorizationManager;
-        $this->cache = $cache;
         $this->documentManager = $documentManager;
         $this->logger = $logger;
         $this->responseFactory = $responseFactory;
@@ -120,7 +115,7 @@ final class Wopi implements WopiInterface
             'UserCanRename' => $this->authorizationManager->userCanRename($accessToken, $document, $request),
             'UserCanWrite' => $this->authorizationManager->userCanWrite($accessToken, $document, $request),
             'UserCanNotWriteRelative' => $this->authorizationManager->userCannotWriteRelative($accessToken, $document, $request),
-            'SupportsUserInfo' => null !== $userIdentifier,
+            'SupportsUserInfo' => false,
             'SupportsDeleteFile' => true,
             'SupportsLocks' => true,
             'SupportsGetLock' => true,
@@ -138,12 +133,6 @@ final class Wopi implements WopiInterface
             'LastModifiedTime' => $this->documentManager->getLastModifiedDate($document)
                 ->format(DateTimeInterface::ATOM),
         ];
-
-        if (null !== $userIdentifier) {
-            $userCacheKey = sprintf('wopi_putUserInfo_%s', $userIdentifier);
-
-            $properties['UserInfo'] = (string) $this->cache->getItem($userCacheKey)->get();
-        }
 
         return $this
             ->responseFactory
@@ -448,26 +437,12 @@ final class Wopi implements WopiInterface
 
     public function putUserInfo(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
     {
-        $userIdentifier = $this->userManager->getUserId($accessToken, $fileId, $request);
+        $this->logger->warning(self::LOG_PREFIX . 'user info called, but not implemented');
 
-        if (null === $userIdentifier) {
-            $this->logger->error(self::LOG_PREFIX . 'user identifier not found');
-
-            return $this->responseFactory->createResponse(400)->withBody(
-                $this->streamFactory->createStream((string) json_encode([
-                    'message' => 'user identifier not found',
-                ]))
-            );
-        }
-        $userCacheKey = sprintf('wopi_putUserInfo_%s', $userIdentifier);
-
-        $cacheItem = $this->cache->getItem($userCacheKey);
-        $cacheItem->set((string) $request->getBody());
-        $this->cache->save($cacheItem);
-
-        return $this
-            ->responseFactory
-            ->createResponse();
+        return $this->responseFactory->createResponse(501)
+            ->withBody($this->streamFactory->createStream((string) json_encode([
+                'message' => 'User info not implemented',
+            ])));
     }
 
     public function refreshLock(
