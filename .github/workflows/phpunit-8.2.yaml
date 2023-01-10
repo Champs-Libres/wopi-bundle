@@ -14,7 +14,7 @@ jobs:
                   php_version: "8.2"
 
             - name: PHPUnit Tests
-              uses: php-actions/phpunit@v3
+              uses: php-actions/phpunit@v9
               with:
                   php_extensions: mbstring json
                   bootstrap: vendor/autoload.php
