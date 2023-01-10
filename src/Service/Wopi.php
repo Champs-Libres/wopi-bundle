@@ -15,7 +15,6 @@ use ChampsLibres\WopiBundle\Service\Wopi\PutFile;
 use ChampsLibres\WopiLib\Contract\Service\DocumentManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use DateTimeInterface;
-use LogicException;
 use Psr\Cache\CacheItemPoolInterface;
 
 use Psr\Http\Message\RequestInterface;
@@ -121,7 +120,7 @@ final class Wopi implements WopiInterface
             'UserCanRename' => $this->authorizationManager->userCanRename($accessToken, $document, $request),
             'UserCanWrite' => $this->authorizationManager->userCanWrite($accessToken, $document, $request),
             'UserCanNotWriteRelative' => $this->authorizationManager->userCannotWriteRelative($accessToken, $document, $request),
-            'SupportsUserInfo' => $userIdentifier !== null,
+            'SupportsUserInfo' => null !== $userIdentifier,
             'SupportsDeleteFile' => true,
             'SupportsLocks' => true,
             'SupportsGetLock' => true,
