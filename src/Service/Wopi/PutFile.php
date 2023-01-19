@@ -29,6 +29,8 @@ class PutFile
 
     private DocumentManagerInterface $documentManager;
 
+    private bool $enableLock;
+
     private LoggerInterface $logger;
 
     private ResponseFactoryInterface $responseFactory;
@@ -58,6 +60,7 @@ class PutFile
         $this->userManager = $userManager;
         $this->authorizationManager = $authorizationManager;
         $this->versionManagement = $parameterBag->get('wopi')['version_management'];
+        $this->enableLock = $parameterBag->get('wopi')['enable_lock'];
     }
 
     public function __invoke(
@@ -89,7 +92,7 @@ class PutFile
         $version = $this->documentManager->getVersion($document);
 
         // File is unlocked
-        if (false === $this->documentManager->hasLock($document)) {
+        if ($this->enableLock && false === $this->documentManager->hasLock($document)) {
             if (0 !== $this->documentManager->getSize($document)) {
                 $this->logger->error(self::LOG_PREFIX . 'file unlocked', ['fileId' => $fileId]);
 
@@ -105,7 +108,8 @@ class PutFile
 
         // File is locked
         if (
-            $this->documentManager->hasLock($document)
+            $this->enableLock
+            && $this->documentManager->hasLock($document)
             && $xWopiLock !== $currentLock = $this->documentManager->getLock($document)
         ) {
             $this->logger->error(self::LOG_PREFIX . 'file locked and lock does not match', ['fileId' => $fileId]);

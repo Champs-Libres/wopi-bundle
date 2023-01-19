@@ -23,6 +23,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 use Symfony\Component\Routing\RouterInterface;
@@ -37,6 +38,8 @@ final class Wopi implements WopiInterface
     private AuthorizationManagerInterface $authorizationManager;
 
     private DocumentManagerInterface $documentManager;
+
+    private bool $enableLock;
 
     private LoggerInterface $logger;
 
@@ -61,7 +64,8 @@ final class Wopi implements WopiInterface
         StreamFactoryInterface $streamFactory,
         UriFactoryInterface $uriFactory,
         UserManagerInterface $userManager,
-        PutFile $putFile
+        PutFile $putFile,
+        ParameterBagInterface $parameterBag
     ) {
         $this->authorizationManager = $authorizationManager;
         $this->documentManager = $documentManager;
@@ -72,6 +76,7 @@ final class Wopi implements WopiInterface
         $this->uriFactory = $uriFactory;
         $this->userManager = $userManager;
         $this->putFileExecutor = $putFile;
+        $this->enableLock = $parameterBag->get('wopi')['enable_lock'];
     }
 
     /**
@@ -117,9 +122,9 @@ final class Wopi implements WopiInterface
             'UserCanNotWriteRelative' => $this->authorizationManager->userCannotWriteRelative($accessToken, $document, $request),
             'SupportsUserInfo' => false,
             'SupportsDeleteFile' => true,
-            'SupportsLocks' => true,
-            'SupportsGetLock' => true,
-            'SupportsExtendedLockLength' => true,
+            'SupportsLocks' => $this->enableLock,
+            'SupportsGetLock' => $this->enableLock,
+            'SupportsExtendedLockLength' => $this->enableLock,
             'SupportsUpdate' => true,
             'SupportsRename' => true,
             'SupportsFolders' => false,
@@ -283,18 +288,16 @@ final class Wopi implements WopiInterface
         $version = $this->documentManager->getVersion($document);
 
         if ($this->documentManager->hasLock($document)) {
-            if ($xWopiLock === $currentLock = $this->documentManager->getLock($document)) {
-                return $this->refreshLock($fileId, $accessToken, $xWopiLock, $request);
+            if ($xWopiLock !== $currentLock = $this->documentManager->getLock($document)) {
+                return $this
+                    ->responseFactory
+                    ->createResponse(409)
+                    ->withHeader(WopiInterface::HEADER_LOCK, $currentLock)
+                    ->withHeader(
+                        WopiInterface::HEADER_ITEM_VERSION,
+                        sprintf('v%s', $version)
+                    );
             }
-
-            return $this
-                ->responseFactory
-                ->createResponse(409)
-                ->withHeader(WopiInterface::HEADER_LOCK, $currentLock)
-                ->withHeader(
-                    WopiInterface::HEADER_ITEM_VERSION,
-                    sprintf('v%s', $version)
-                );
         }
 
         $this->documentManager->lock($document, $xWopiLock);
@@ -380,7 +383,7 @@ final class Wopi implements WopiInterface
                         );
                 }
 
-                if ($this->documentManager->hasLock($document)) {
+                if ($this->enableLock && $this->documentManager->hasLock($document)) {
                     return $this
                         ->responseFactory
                         ->createResponse(409)
@@ -479,7 +482,7 @@ final class Wopi implements WopiInterface
             ])));
         }
 
-        if ($this->documentManager->hasLock($document)) {
+        if ($this->enableLock && $this->documentManager->hasLock($document)) {
             if ($xWopiLock !== $currentLock = $this->documentManager->getLock($document)) {
                 return $this
                     ->responseFactory
@@ -534,7 +537,7 @@ final class Wopi implements WopiInterface
 
         $currentLock = $this->documentManager->getLock($document);
 
-        if ($currentLock !== $xWopiLock) {
+        if ($this->enableLock && $currentLock !== $xWopiLock) {
             return $this
                 ->responseFactory
                 ->createResponse(409)

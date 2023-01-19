@@ -29,6 +29,7 @@ final class Configuration implements ConfigurationInterface
             ->info('Manager document versioning through version (Office 365) or last modified time (Collabora Online, CODE, etc.)')
             ->defaultValue('timestamp')
             ->end()
+            ->booleanNode('enable_lock')->defaultTrue()->end()
             ->end();
 
         return $treeBuilder;
