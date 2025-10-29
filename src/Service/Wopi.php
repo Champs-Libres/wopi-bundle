@@ -47,7 +47,7 @@ final readonly class Wopi implements WopiInterface
         $this->putFileExecutor = $putFile;
         $config = $parameterBag->get('wopi');
         if (is_array($config) && isset($config['enable_lock']) && is_bool($enableLock = $config['enable_lock'])) {
-           $this->enableLock = $enableLock;
+            $this->enableLock = $enableLock;
         } else {
             throw new \UnexpectedValueException("Invalid value for 'enable_lock' in configuration: must be a boolean");
         }
@@ -374,7 +374,7 @@ final readonly class Wopi implements WopiInterface
         $size = $request->getHeaderLine(WopiInterface::HEADER_SIZE);
 
         if (!is_numeric($size)) {
-            throw new \UnexpectedValueException("Invalid size header value: must be numeric");
+            throw new \UnexpectedValueException('Invalid size header value: must be numeric');
         }
 
         $new = $this->documentManager->create([
