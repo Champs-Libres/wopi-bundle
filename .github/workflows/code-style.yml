@@ -25,12 +25,12 @@ jobs:
                   git config --global core.eol lf
 
             - name: Checkout
-              uses: actions/checkout@v3
+              uses: actions/checkout@v4
               with:
                   fetch-depth: 1
 
             - name: Install PHP
-              uses: shivammathur/setup-php@2.25.1
+              uses: shivammathur/setup-php@v2
               with:
                   php-version: ${{ matrix.php-versions }}
                   extensions: gd,mbstring,pcov
@@ -38,22 +38,21 @@ jobs:
 
             - name: Get Composer Cache Directory
               id: composer-cache
-              run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
             - name: Cache dependencies
-              uses: actions/cache@v3
+              uses: actions/cache@v4
               with:
                   path: ${{ steps.composer-cache.outputs.dir }}
-                  key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
+                  key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
                   restore-keys: ${{ runner.os }}-composer-
 
             - name: Install dependencies
               run: composer install --no-progress --prefer-dist --optimize-autoloader
 
-            - name: Run Grumphp
-              run: vendor/bin/grumphp run --testsuite=cs -n
+            - name: Vérifier le code style (php-cs-fixer dry-run)
+              run: vendor/bin/php-cs-fixer fix --dry-run --diff --format=checkstyle --allow-risky=yes | cs2pr
 
-            - name: Send feedback on Github
-              if: ${{ failure() }}
-              run: |
-                  vendor/bin/php-cs-fixer --allow-risky=yes fix --dry-run --format=checkstyle | cs2pr
+            - name: Appliquer automatiquement le code style si push direct
+              if: ${{ github.event_name == 'push' }}
+              run: vendor/bin/php-cs-fixer fix --allow-risky=yes
