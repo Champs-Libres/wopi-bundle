@@ -12,7 +12,7 @@ use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
-/**
+/*
  * Wopi routes callback.
  *
  * phpcs:disable Generic.Files.LineLength.TooLong
@@ -31,9 +31,9 @@ return static function (RoutingConfigurator $routes) {
         return sprintf('request.headers.has("%s")', $header);
     };
 
-    /** Routes definitions */
+    /* Routes definitions */
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/CheckFileInfo.html
      */
     $routes
@@ -49,7 +49,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/GetFile.html
      */
     $routes
@@ -65,7 +65,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/UnlockAndRelock.html
      */
     $routes
@@ -84,7 +84,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/Lock.html
      */
     $routes
@@ -102,7 +102,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/GetLock.html
      */
     $routes
@@ -120,7 +120,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/RefreshLock.html
      */
     $routes
@@ -138,7 +138,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/Unlock.html
      */
     $routes
@@ -156,7 +156,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/PutFile.html
      */
     $routes
@@ -174,7 +174,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/PutRelativeFile.html
      */
     $routes
@@ -191,7 +191,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/RenameFile.html
      */
     $routes
@@ -210,7 +210,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/DeleteFile.html
      */
     $routes
@@ -227,7 +227,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/EnumerateAncestors.html
      */
     $routes
@@ -235,7 +235,7 @@ return static function (RoutingConfigurator $routes) {
         ->controller([Files::class, 'enumerateAncestors'])
         ->methods([Request::METHOD_GET]);
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/GetShareUrl.html
      */
     $routes
@@ -253,7 +253,7 @@ return static function (RoutingConfigurator $routes) {
             )
         );
 
-    /**
+    /*
      * @see https://wopi.readthedocs.io/projects/wopirest/en/latest/files/PutUserInfo.html
      */
     $routes

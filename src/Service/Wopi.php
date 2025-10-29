@@ -14,22 +14,15 @@ use ChampsLibres\WopiBundle\Contracts\UserManagerInterface;
 use ChampsLibres\WopiBundle\Service\Wopi\PutFile;
 use ChampsLibres\WopiLib\Contract\Service\DocumentManagerInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
-use DateTimeInterface;
-
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
-
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Response;
-
 use Symfony\Component\Routing\RouterInterface;
-
-use const PATHINFO_EXTENSION;
-use const PATHINFO_FILENAME;
 
 final class Wopi implements WopiInterface
 {
@@ -65,7 +58,7 @@ final class Wopi implements WopiInterface
         UriFactoryInterface $uriFactory,
         UserManagerInterface $userManager,
         PutFile $putFile,
-        ParameterBagInterface $parameterBag
+        ParameterBagInterface $parameterBag,
     ) {
         $this->authorizationManager = $authorizationManager;
         $this->documentManager = $documentManager;
@@ -80,14 +73,14 @@ final class Wopi implements WopiInterface
     }
 
     /**
-     * @param array<string, string|boolean|int|null> $overrideProperties
+     * @param array<string, string|bool|int|null> $overrideProperties
      */
     public function checkFileInfo(string $fileId, string $accessToken, RequestInterface $request, array $overrideProperties = []): ResponseInterface
     {
         $userIdentifier = $this->userManager->getUserId($accessToken, $fileId, $request);
 
         if (null === $userIdentifier && false === $this->userManager->isAnonymousUser($accessToken, $fileId, $request)) {
-            $this->logger->error(self::LOG_PREFIX . 'user not found nor anonymous');
+            $this->logger->error(self::LOG_PREFIX.'user not found nor anonymous');
 
             return $this->responseFactory
                 ->createResponse(404)
@@ -101,7 +94,7 @@ final class Wopi implements WopiInterface
         }
 
         if (!$this->authorizationManager->userCanRead($accessToken, $document, $request)) {
-            $this->logger->info(self::LOG_PREFIX . 'user is not allowed to read document', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
+            $this->logger->info(self::LOG_PREFIX.'user is not allowed to read document', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
 
             return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
                 'message' => 'user is not allowed to see this document',
@@ -136,7 +129,7 @@ final class Wopi implements WopiInterface
             ],
             'SHA256' => $this->documentManager->getSha256($document),
             'LastModifiedTime' => $this->documentManager->getLastModifiedDate($document)
-                ->format(DateTimeInterface::ATOM),
+                ->format(\DateTimeInterface::ATOM),
         ];
 
         return $this
@@ -159,7 +152,7 @@ final class Wopi implements WopiInterface
             || false === $this->authorizationManager->userCanWrite($accessToken, $document, $request)
         ) {
             $this->logger->info(
-                self::LOG_PREFIX . 'user is not authorized to delete file',
+                self::LOG_PREFIX.'user is not authorized to delete file',
                 ['fileId' => $fileId, 'userId' => $this->userManager->getUserId($accessToken, $fileId, $request)]
             );
 
@@ -177,7 +170,7 @@ final class Wopi implements WopiInterface
     public function enumerateAncestors(
         string $fileId,
         string $accessToken,
-        RequestInterface $request
+        RequestInterface $request,
     ): ResponseInterface {
         return $this
             ->responseFactory
@@ -187,7 +180,7 @@ final class Wopi implements WopiInterface
     public function getFile(
         string $fileId,
         string $accessToken,
-        RequestInterface $request
+        RequestInterface $request,
     ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
 
@@ -197,7 +190,7 @@ final class Wopi implements WopiInterface
 
         if (!$this->authorizationManager->userCanRead($accessToken, $document, $request)) {
             $userIdentifier = $this->userManager->getUserId($accessToken, $fileId, $request);
-            $this->logger->info(self::LOG_PREFIX . 'user is not allowed to read document', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
+            $this->logger->info(self::LOG_PREFIX.'user is not allowed to read document', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
 
             return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
                 'message' => 'user is not allowed to see this document',
@@ -238,7 +231,7 @@ final class Wopi implements WopiInterface
         }
 
         if (!$this->authorizationManager->isTokenValid($accessToken, $document, $request)) {
-            $this->logger->info(self::LOG_PREFIX . 'invalid access token', ['fileId' => $fileId]);
+            $this->logger->info(self::LOG_PREFIX.'invalid access token', ['fileId' => $fileId]);
 
             return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
                 'message' => 'invalid access token',
@@ -269,7 +262,7 @@ final class Wopi implements WopiInterface
         string $fileId,
         string $accessToken,
         string $xWopiLock,
-        RequestInterface $request
+        RequestInterface $request,
     ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
 
@@ -278,7 +271,7 @@ final class Wopi implements WopiInterface
         }
 
         if (!$this->authorizationManager->isTokenValid($accessToken, $document, $request)) {
-            $this->logger->info(self::LOG_PREFIX . 'invalid access token', ['fileId' => $fileId]);
+            $this->logger->info(self::LOG_PREFIX.'invalid access token', ['fileId' => $fileId]);
 
             return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
                 'message' => 'invalid access token',
@@ -316,7 +309,7 @@ final class Wopi implements WopiInterface
         string $accessToken,
         string $xWopiLock,
         string $xWopiEditors,
-        RequestInterface $request
+        RequestInterface $request,
     ): ResponseInterface {
         return ($this->putFileExecutor)($fileId, $accessToken, $xWopiLock, $xWopiEditors, $request);
     }
@@ -328,7 +321,7 @@ final class Wopi implements WopiInterface
         ?string $relativeTarget,
         bool $overwriteRelativeTarget,
         int $size,
-        RequestInterface $request
+        RequestInterface $request,
     ): ResponseInterface {
         if ((null === $suggestedTarget) && (null === $relativeTarget)) {
             return $this
@@ -347,7 +340,7 @@ final class Wopi implements WopiInterface
                 if (null === $document) {
                     return $this->makeDocumentNotFoundResponse($fileId);
                 }
-                $filename = pathinfo($this->documentManager->getBasename($document), PATHINFO_EXTENSION | PATHINFO_FILENAME);
+                $filename = pathinfo($this->documentManager->getBasename($document), \PATHINFO_EXTENSION | \PATHINFO_FILENAME);
 
                 $suggestedTarget = sprintf('%s%s', $filename, $suggestedTarget);
             }
@@ -356,7 +349,7 @@ final class Wopi implements WopiInterface
         } else {
             $document = $this->documentManager->findByDocumentFilename($relativeTarget);
 
-            /**
+            /*
              * If a file with the specified name already exists,
              * the host must respond with a 409 Conflict,
              * unless the X-WOPI-OverwriteRelativeTarget request header is set to true.
@@ -371,7 +364,7 @@ final class Wopi implements WopiInterface
              */
             if (null !== $document) {
                 if (false === $overwriteRelativeTarget) {
-                    $extension = pathinfo($this->documentManager->getBasename($document), PATHINFO_EXTENSION);
+                    $extension = pathinfo($this->documentManager->getBasename($document), \PATHINFO_EXTENSION);
 
                     return $this
                         ->responseFactory
@@ -395,7 +388,7 @@ final class Wopi implements WopiInterface
         }
 
         /** @var array{filename: string, extension: string} $pathInfo */
-        $pathInfo = pathinfo($target, PATHINFO_EXTENSION | PATHINFO_FILENAME);
+        $pathInfo = pathinfo($target, \PATHINFO_EXTENSION | \PATHINFO_FILENAME);
 
         $new = $this->documentManager->create([
             'basename' => $target,
@@ -440,7 +433,7 @@ final class Wopi implements WopiInterface
 
     public function putUserInfo(string $fileId, string $accessToken, RequestInterface $request): ResponseInterface
     {
-        $this->logger->warning(self::LOG_PREFIX . 'user info called, but not implemented');
+        $this->logger->warning(self::LOG_PREFIX.'user info called, but not implemented');
 
         return $this->responseFactory->createResponse(501)
             ->withBody($this->streamFactory->createStream((string) json_encode([
@@ -452,7 +445,7 @@ final class Wopi implements WopiInterface
         string $fileId,
         string $accessToken,
         string $xWopiLock,
-        RequestInterface $request
+        RequestInterface $request,
     ): ResponseInterface {
         // note: the validation of access token is done inside unlock and lock methods
         $this->unlock($fileId, $accessToken, $xWopiLock, $request);
@@ -465,7 +458,7 @@ final class Wopi implements WopiInterface
         string $accessToken,
         string $xWopiLock,
         string $xWopiRequestedName,
-        RequestInterface $request
+        RequestInterface $request,
     ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
 
@@ -475,7 +468,7 @@ final class Wopi implements WopiInterface
 
         if (!$this->authorizationManager->userCanRename($accessToken, $document, $request)) {
             $userIdentifier = $this->userManager->getUserId($accessToken, $fileId, $request);
-            $this->logger->info(self::LOG_PREFIX . 'user is not allowed to rename', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
+            $this->logger->info(self::LOG_PREFIX.'user is not allowed to rename', ['fileId' => $fileId, 'userIdentifier' => $userIdentifier]);
 
             return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
                 'message' => 'user is not allowed to rename',
@@ -510,7 +503,7 @@ final class Wopi implements WopiInterface
         string $fileId,
         string $accessToken,
         string $xWopiLock,
-        RequestInterface $request
+        RequestInterface $request,
     ): ResponseInterface {
         $document = $this->documentManager->findByDocumentId($fileId);
 
@@ -519,7 +512,7 @@ final class Wopi implements WopiInterface
         }
 
         if (!$this->authorizationManager->isTokenValid($accessToken, $document, $request)) {
-            $this->logger->info(self::LOG_PREFIX . 'invalid access token', ['fileId' => $fileId]);
+            $this->logger->info(self::LOG_PREFIX.'invalid access token', ['fileId' => $fileId]);
 
             return $this->responseFactory->createResponse(401)->withBody($this->streamFactory->createStream((string) json_encode([
                 'message' => 'invalid access token',
@@ -561,7 +554,7 @@ final class Wopi implements WopiInterface
         string $accessToken,
         string $xWopiLock,
         string $xWopiOldLock,
-        RequestInterface $request
+        RequestInterface $request,
     ): ResponseInterface {
         $this->unlock($fileId, $accessToken, $xWopiOldLock, $request);
 
@@ -570,7 +563,7 @@ final class Wopi implements WopiInterface
 
     private function makeDocumentNotFoundResponse(string $fileId): ResponseInterface
     {
-        $this->logger->error(self::LOG_PREFIX . 'Document not found', ['fileId' => $fileId]);
+        $this->logger->error(self::LOG_PREFIX.'Document not found', ['fileId' => $fileId]);
 
         return $this->responseFactory->createResponse(404)
             ->withBody($this->streamFactory->createStream((string) json_encode([

@@ -11,16 +11,11 @@ namespace ChampsLibres\WopiBundle\Controller;
 
 use ChampsLibres\WopiLib\Contract\Service\ProofValidatorInterface;
 use ChampsLibres\WopiLib\Contract\Service\WopiInterface;
-use Exception;
 use loophp\psr17\Psr17Interface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LoggerInterface;
-use Throwable;
-
-use function array_key_exists;
-use function is_array;
 
 /**
  * Class Files.
@@ -41,7 +36,7 @@ final class Files
         LoggerInterface $logger,
         WopiInterface $wopi,
         ProofValidatorInterface $wopiProofValidator,
-        Psr17Interface $psr17
+        Psr17Interface $psr17,
     ) {
         $this->logger = $logger;
         $this->wopi = $wopi;
@@ -61,7 +56,7 @@ final class Files
                 $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -80,7 +75,7 @@ final class Files
                 $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -99,7 +94,7 @@ final class Files
                 $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -118,7 +113,7 @@ final class Files
                 $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -137,7 +132,7 @@ final class Files
                 $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -156,7 +151,7 @@ final class Files
                 $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -176,7 +171,7 @@ final class Files
                 $request->getHeaderLine(WopiInterface::HEADER_LOCK),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -197,7 +192,7 @@ final class Files
                 $request->getHeaderLine(WopiInterface::HEADER_EDITORS),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -230,7 +225,7 @@ final class Files
                 (int) $request->getHeaderLine(WopiInterface::HEADER_SIZE),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -249,7 +244,7 @@ final class Files
                 $this->getParam($request->getUri(), 'access_token'),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -269,7 +264,7 @@ final class Files
                 $request->getHeaderLine(WopiInterface::HEADER_LOCK),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -300,7 +295,7 @@ final class Files
                 $requestedName,
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -320,7 +315,7 @@ final class Files
                 $request->getHeaderLine(WopiInterface::HEADER_LOCK),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -341,7 +336,7 @@ final class Files
                 $request->getHeaderLine(WopiInterface::HEADER_OLD_LOCK),
                 $request
             );
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             throw $e;
         }
 
@@ -354,14 +349,14 @@ final class Files
 
         parse_str($uri->getQuery(), $output);
 
-        if (!array_key_exists($param, $output)) {
-            throw new Exception('No param found.');
+        if (!\array_key_exists($param, $output)) {
+            throw new \Exception('No param found.');
         }
 
         $r = $output[$param];
 
-        if (is_array($r)) {
-            throw new Exception('Param is an array, not a string');
+        if (\is_array($r)) {
+            throw new \Exception('Param is an array, not a string');
         }
 
         return $r;

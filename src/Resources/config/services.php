@@ -33,7 +33,7 @@ return static function (ContainerConfigurator $container) {
         ->autowire(true);
 
     $services
-        ->load('ChampsLibres\\WopiBundle\\Controller\\', __DIR__ . '/../../Controller')
+        ->load('ChampsLibres\\WopiBundle\\Controller\\', __DIR__.'/../../Controller')
         ->tag('controller.service_arguments');
 
     $services
