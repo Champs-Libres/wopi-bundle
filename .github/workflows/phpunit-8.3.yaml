@@ -1,4 +1,4 @@
-name: CI-php-7.4
+name: CI-php-8.3
 
 on: [push]
 
@@ -7,16 +7,16 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
 
             - uses: php-actions/composer@v6
               with:
-                  php_version: "7.4"
+                  php_version: "8.3"
 
             - name: PHPUnit Tests
-              uses: php-actions/phpunit@v9
+              uses: php-actions/phpunit@v4
               with:
                   php_extensions: mbstring json
                   bootstrap: vendor/autoload.php
                   configuration: phpunit.xml
-                  php_version: "7.4"
+                  php_version: "8.3"

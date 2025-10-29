@@ -16,9 +16,6 @@ use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 
 final class WopiExtension extends Extension
 {
-    /**
-     * @phpstan-ignore-next-line
-     */
     public function load(array $configs, ContainerBuilder $container): void
     {
         $container
@@ -29,7 +26,7 @@ final class WopiExtension extends Extension
 
         $loader = new PhpFileLoader(
             $container,
-            new FileLocator(__DIR__ . '/../Resources/config')
+            new FileLocator(__DIR__.'/../Resources/config')
         );
 
         $loader->load('services.php');

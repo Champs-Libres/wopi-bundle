@@ -33,27 +33,23 @@ final class WopiPutFileTest extends TestCase
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileNoLock()
+    public function testPutFileNoLock(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))->willReturn(new DummyDocument());
-        $documentManager->getVersion(Argument::type(Document::class))->will(static function ($args) {
-            return $args[0]->version;
-        });
+        $documentManager->getVersion(Argument::type(Document::class))->will(static fn($args) => $args[0]->version);
         $documentManager->hasLock(Argument::type(Document::class))
             ->willReturn(true);
         $documentManager->getLock(Argument::type(Document::class))->willReturn('should-not-be-used');
         $documentManager->write(Argument::type(Document::class), Argument::type('array'))
-            ->will(static function ($args) {
+            ->will(static function ($args): void {
                 /** @var DummyDocument $doc */
                 $doc = $args[0];
                 ++$doc->version;
                 $doc->lastModified = new DateTimeImmutable('now');
             });
         $documentManager->getLastModifiedDate(Argument::type(Document::class))
-            ->will(static function ($args) {
-                return $args[0]->lastModified;
-            });
+            ->will(static fn($args) => $args[0]->lastModified);
 
         $authorizationManager = $this->prophesize(AuthorizationManagerInterface::class);
         $authorizationManager->userCanWrite(Argument::type('string'), Argument::type(Document::class), Argument::type(RequestInterface::class))
@@ -76,37 +72,33 @@ final class WopiPutFileTest extends TestCase
         $response = $wopi('1234', 'token', 'x-lock-false', '', $request);
         $body = json_decode((string) $response->getBody(), true);
 
-        self::assertEquals(200, $response->getStatusCode());
-        self::assertIsArray($body);
-        self::arrayHasKey('LastModifiedTime', $body);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertIsArray($body);
+        self::arrayHasKey('LastModifiedTime');
         $this->assertinstanceOf(DateTimeInterface::class, $lastModified = DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $body['LastModifiedTime']));
-        self::greaterThan(new DateTimeImmutable('1 second ago'), $lastModified);
+        self::greaterThan(new DateTimeImmutable('1 second ago'));
     }
 
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileTimestampVersioningNoConflict()
+    public function testPutFileTimestampVersioningNoConflict(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))->willReturn(new DummyDocument());
-        $documentManager->getVersion(Argument::type(Document::class))->will(static function ($args) {
-            return $args[0]->version;
-        });
+        $documentManager->getVersion(Argument::type(Document::class))->will(static fn($args) => $args[0]->version);
         $documentManager->hasLock(Argument::type(Document::class))
             ->willReturn(true);
         $documentManager->getLock(Argument::type(Document::class))->willReturn('x-lock-1234');
         $documentManager->write(Argument::type(Document::class), Argument::type('array'))
-            ->will(static function ($args) {
+            ->will(static function ($args): void {
                 /** @var DummyDocument $doc */
                 $doc = $args[0];
                 ++$doc->version;
                 $doc->lastModified = new DateTimeImmutable('now');
             });
         $documentManager->getLastModifiedDate(Argument::type(Document::class))
-            ->will(static function ($args) {
-                return $args[0]->lastModified;
-            });
+            ->will(static fn($args) => $args[0]->lastModified);
 
         $authorizationManager = $this->prophesize(AuthorizationManagerInterface::class);
         $authorizationManager->userCanWrite(Argument::type('string'), Argument::type(Document::class), Argument::type(RequestInterface::class))
@@ -129,38 +121,34 @@ final class WopiPutFileTest extends TestCase
         $response = $wopi('1234', 'token', 'x-lock-1234', '', $request);
         $body = json_decode((string) $response->getBody(), true);
 
-        self::assertEquals(200, $response->getStatusCode());
-        self::assertIsArray($body);
-        self::arrayHasKey('LastModifiedTime', $body);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertIsArray($body);
+        self::arrayHasKey('LastModifiedTime');
         $this->assertinstanceOf(DateTimeInterface::class, $lastModified = DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $body['LastModifiedTime']));
-        self::greaterThan(new DateTimeImmutable('1 second ago'), $lastModified);
+        self::greaterThan(new DateTimeImmutable('1 second ago'));
     }
 
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileTimestampVersioningWithConflict()
+    public function testPutFileTimestampVersioningWithConflict(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))
             ->willReturn(new DummyDocument());
-        $documentManager->getVersion(Argument::type(Document::class))->will(static function ($args) {
-            return $args[0]->version;
-        });
+        $documentManager->getVersion(Argument::type(Document::class))->will(static fn($args) => $args[0]->version);
         $documentManager->hasLock(Argument::type(Document::class))
             ->willReturn(true);
         $documentManager->getLock(Argument::type(Document::class))->willReturn('x-lock-1234');
         $documentManager->write(Argument::type(Document::class), Argument::type('array'))
-            ->will(static function ($args) {
+            ->will(static function ($args): void {
                 /** @var DummyDocument $doc */
                 $doc = $args[0];
                 ++$doc->version;
                 $doc->lastModified = new DateTimeImmutable('now');
             });
         $documentManager->getLastModifiedDate(Argument::type(Document::class))
-            ->will(static function ($args) {
-                return $args[0]->lastModified;
-            });
+            ->will(static fn($args) => $args[0]->lastModified);
 
         $authorizationManager = $this->prophesize(AuthorizationManagerInterface::class);
         $authorizationManager->userCanWrite(Argument::type('string'), Argument::type(Document::class), Argument::type(RequestInterface::class))
@@ -183,41 +171,37 @@ final class WopiPutFileTest extends TestCase
         $response = $wopi('1234', 'token', 'x-lock-1234', '', $request);
         $body = json_decode((string) $response->getBody(), true);
 
-        self::assertEquals(409, $response->getStatusCode());
-        self::assertIsArray($body);
+        $this->assertEquals(409, $response->getStatusCode());
+        $this->assertIsArray($body);
         // match the implementation done by richdocuments: https://github.com/nextcloud/richdocuments/blob/1087aa7fc1b91c5eb8e189c9bbd47d0080f53d1a/lib/Controller/WopiController.php#L493
-        self::assertArrayHasKey('LOOLStatusCode', $body);
-        self::assertEquals($body['LOOLStatusCode'], 1010);
+        $this->assertArrayHasKey('LOOLStatusCode', $body);
+        $this->assertEquals(1010, $body['LOOLStatusCode']);
         // match the description of https://sdk.collaboraonline.com/docs/advanced_integration.html#detecting-external-document-change
-        self::assertArrayHasKey('COOLStatusCode', $body);
-        self::assertEquals($body['COOLStatusCode'], 1010);
+        $this->assertArrayHasKey('COOLStatusCode', $body);
+        $this->assertEquals(1010, $body['COOLStatusCode']);
     }
 
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileTimestampVersioningWithoutTimestampHeader()
+    public function testPutFileTimestampVersioningWithoutTimestampHeader(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))
             ->willReturn(new DummyDocument());
-        $documentManager->getVersion(Argument::type(Document::class))->will(static function ($args) {
-            return $args[0]->version;
-        });
+        $documentManager->getVersion(Argument::type(Document::class))->will(static fn($args) => $args[0]->version);
         $documentManager->hasLock(Argument::type(Document::class))
             ->willReturn(true);
         $documentManager->getLock(Argument::type(Document::class))->willReturn('x-lock-1234');
         $documentManager->write(Argument::type(Document::class), Argument::type('array'))
-            ->will(static function ($args) {
+            ->will(static function ($args): void {
                 /** @var DummyDocument $doc */
                 $doc = $args[0];
                 ++$doc->version;
                 $doc->lastModified = new DateTimeImmutable('now');
             });
         $documentManager->getLastModifiedDate(Argument::type(Document::class))
-            ->will(static function ($args) {
-                return $args[0]->lastModified;
-            });
+            ->will(static fn($args) => $args[0]->lastModified);
 
         $authorizationManager = $this->prophesize(AuthorizationManagerInterface::class);
         $authorizationManager->userCanWrite(Argument::type('string'), Argument::type(Document::class), Argument::type(RequestInterface::class))
@@ -239,38 +223,34 @@ final class WopiPutFileTest extends TestCase
         $response = $wopi('1234', 'token', 'x-lock-1234', '', $request);
         $body = json_decode((string) $response->getBody(), true);
 
-        self::assertEquals(200, $response->getStatusCode());
-        self::assertIsArray($body);
-        self::arrayHasKey('LastModifiedTime', $body);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertIsArray($body);
+        self::arrayHasKey('LastModifiedTime');
         $this->assertinstanceOf(DateTimeInterface::class, $lastModified = DateTimeImmutable::createFromFormat(DateTimeInterface::ATOM, $body['LastModifiedTime']));
-        self::greaterThan(new DateTimeImmutable('1 second ago'), $lastModified);
+        self::greaterThan(new DateTimeImmutable('1 second ago'));
     }
 
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileWhenUserCannotWrite()
+    public function testPutFileWhenUserCannotWrite(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))
             ->willReturn(new DummyDocument());
-        $documentManager->getVersion(Argument::type(Document::class))->will(static function ($args) {
-            return $args[0]->version;
-        });
+        $documentManager->getVersion(Argument::type(Document::class))->will(static fn($args) => $args[0]->version);
         $documentManager->hasLock(Argument::type(Document::class))
             ->willReturn(true);
         $documentManager->getLock(Argument::type(Document::class))->willReturn('x-lock-1234');
         $documentManager->write(Argument::type(Document::class), Argument::type('array'))
-            ->will(static function ($args) {
+            ->will(static function ($args): void {
                 /** @var DummyDocument $doc */
                 $doc = $args[0];
                 ++$doc->version;
                 $doc->lastModified = new DateTimeImmutable('now');
             });
         $documentManager->getLastModifiedDate(Argument::type(Document::class))
-            ->will(static function ($args) {
-                return $args[0]->lastModified;
-            });
+            ->will(static fn($args) => $args[0]->lastModified);
 
         $authorizationManager = $this->prophesize(AuthorizationManagerInterface::class);
         $authorizationManager->userCanWrite(Argument::type('string'), Argument::type(Document::class), Argument::type(RequestInterface::class))
@@ -297,7 +277,7 @@ final class WopiPutFileTest extends TestCase
         $response = $wopi('1234', 'token', 'x-lock-1234', '', $request);
         $body = json_decode((string) $response->getBody(), true);
 
-        self::assertEquals(401, $response->getStatusCode());
+        $this->assertEquals(401, $response->getStatusCode());
     }
 }
 
