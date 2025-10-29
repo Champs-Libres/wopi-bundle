@@ -17,42 +17,24 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class PutFile
 {
-    private const LOG_PREFIX = '[wopi][wopi/PutFile] ';
+    private const string LOG_PREFIX = '[wopi][wopi/PutFile] ';
 
-    private AuthorizationManagerInterface $authorizationManager;
-
-    private DocumentManagerInterface $documentManager;
-
-    private bool $enableLock;
-
-    private LoggerInterface $logger;
-
-    private ResponseFactoryInterface $responseFactory;
-
-    private StreamFactoryInterface $streamFactory;
-
-    private UserManagerInterface $userManager;
+    private readonly bool $enableLock;
 
     /**
      * @var 'version'|'timestamp'
      */
-    private string $versionManagement;
+    private readonly string $versionManagement;
 
     public function __construct(
-        AuthorizationManagerInterface $authorizationManager,
-        DocumentManagerInterface $documentManager,
-        LoggerInterface $logger,
+        private readonly AuthorizationManagerInterface $authorizationManager,
+        private readonly DocumentManagerInterface $documentManager,
+        private readonly LoggerInterface $logger,
         ParameterBagInterface $parameterBag,
-        ResponseFactoryInterface $responseFactory,
-        StreamFactoryInterface $streamFactory,
-        UserManagerInterface $userManager,
+        private readonly ResponseFactoryInterface $responseFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly UserManagerInterface $userManager,
     ) {
-        $this->documentManager = $documentManager;
-        $this->logger = $logger;
-        $this->responseFactory = $responseFactory;
-        $this->streamFactory = $streamFactory;
-        $this->userManager = $userManager;
-        $this->authorizationManager = $authorizationManager;
         $this->versionManagement = $parameterBag->get('wopi')['version_management'];
         $this->enableLock = $parameterBag->get('wopi')['enable_lock'];
     }

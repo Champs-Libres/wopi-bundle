@@ -24,7 +24,7 @@ use ChampsLibres\WopiLib\Service\DocumentLockManager;
 use ChampsLibres\WopiLib\Service\ProofValidator;
 use ChampsLibres\WopiLib\Service\Utils\DotNetTimeConverter;
 
-return static function (ContainerConfigurator $container) {
+return static function (ContainerConfigurator $container): void {
     $services = $container->services();
 
     $services

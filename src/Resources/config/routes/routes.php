@@ -17,19 +17,13 @@ use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
  *
  * phpcs:disable Generic.Files.LineLength.TooLong
  */
-return static function (RoutingConfigurator $routes) {
+return static function (RoutingConfigurator $routes): void {
     /** Conditions shortcuts */
-    $isHeaderSetTo = static function (string $header, string $value): string {
-        return sprintf('request.headers.get("%s") === "%s"', $header, $value);
-    };
+    $isHeaderSetTo = (static fn (string $header, string $value): string => sprintf('request.headers.get("%s") === "%s"', $header, $value));
 
-    $hasQueryParam = static function (string $header): string {
-        return sprintf('request.query.has("%s")', $header);
-    };
+    $hasQueryParam = (static fn (string $header): string => sprintf('request.query.has("%s")', $header));
 
-    $hasHeader = static function (string $header): string {
-        return sprintf('request.headers.has("%s")', $header);
-    };
+    $hasHeader = (static fn (string $header): string => sprintf('request.headers.has("%s")', $header));
 
     /* Routes definitions */
 

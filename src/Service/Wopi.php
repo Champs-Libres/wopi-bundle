@@ -24,50 +24,26 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\RouterInterface;
 
-final class Wopi implements WopiInterface
+final readonly class Wopi implements WopiInterface
 {
-    private const LOG_PREFIX = '[wopi][Wopi] ';
-
-    private AuthorizationManagerInterface $authorizationManager;
-
-    private DocumentManagerInterface $documentManager;
+    private const string LOG_PREFIX = '[wopi][Wopi] ';
 
     private bool $enableLock;
 
-    private LoggerInterface $logger;
-
     private PutFile $putFileExecutor;
 
-    private ResponseFactoryInterface $responseFactory;
-
-    private RouterInterface $router;
-
-    private StreamFactoryInterface $streamFactory;
-
-    private UriFactoryInterface $uriFactory;
-
-    private UserManagerInterface $userManager;
-
     public function __construct(
-        AuthorizationManagerInterface $authorizationManager,
-        DocumentManagerInterface $documentManager,
-        LoggerInterface $logger,
-        ResponseFactoryInterface $responseFactory,
-        RouterInterface $router,
-        StreamFactoryInterface $streamFactory,
-        UriFactoryInterface $uriFactory,
-        UserManagerInterface $userManager,
+        private AuthorizationManagerInterface $authorizationManager,
+        private DocumentManagerInterface $documentManager,
+        private LoggerInterface $logger,
+        private ResponseFactoryInterface $responseFactory,
+        private RouterInterface $router,
+        private StreamFactoryInterface $streamFactory,
+        private UriFactoryInterface $uriFactory,
+        private UserManagerInterface $userManager,
         PutFile $putFile,
         ParameterBagInterface $parameterBag,
     ) {
-        $this->authorizationManager = $authorizationManager;
-        $this->documentManager = $documentManager;
-        $this->logger = $logger;
-        $this->responseFactory = $responseFactory;
-        $this->streamFactory = $streamFactory;
-        $this->router = $router;
-        $this->uriFactory = $uriFactory;
-        $this->userManager = $userManager;
         $this->putFileExecutor = $putFile;
         $this->enableLock = $parameterBag->get('wopi')['enable_lock'];
     }
@@ -334,7 +310,7 @@ final class Wopi implements WopiInterface
 
         if (null !== $suggestedTarget) {
             // If it starts with a dot...
-            if (0 === strpos($suggestedTarget, '.', 0)) {
+            if (str_starts_with($suggestedTarget, '.')) {
                 $document = $this->documentManager->findByDocumentId($fileId);
 
                 if (null === $document) {

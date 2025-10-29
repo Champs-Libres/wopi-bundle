@@ -22,26 +22,10 @@ use Psr\Log\LoggerInterface;
  *
  * phpcs:disable Generic.Files.LineLength.TooLong
  */
-final class Files
+final readonly class Files
 {
-    private LoggerInterface $logger;
-
-    private Psr17Interface $psr17;
-
-    private WopiInterface $wopi;
-
-    private ProofValidatorInterface $wopiProofValidator;
-
-    public function __construct(
-        LoggerInterface $logger,
-        WopiInterface $wopi,
-        ProofValidatorInterface $wopiProofValidator,
-        Psr17Interface $psr17,
-    ) {
-        $this->logger = $logger;
-        $this->wopi = $wopi;
-        $this->wopiProofValidator = $wopiProofValidator;
-        $this->psr17 = $psr17;
+    public function __construct(private LoggerInterface $logger, private WopiInterface $wopi, private ProofValidatorInterface $wopiProofValidator, private Psr17Interface $psr17)
+    {
     }
 
     public function checkFileInfo(string $fileId, RequestInterface $request): ResponseInterface
