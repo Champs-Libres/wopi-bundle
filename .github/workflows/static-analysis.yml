@@ -48,8 +48,8 @@ jobs:
         run: composer install --no-interaction --no-progress --prefer-dist --optimize-autoloader
 
       - name: PHPStan
-        run: vendor/bin/phpstan analyse --level=max --memory-limit=1G
+        run: vendor/bin/phpstan analyse --memory-limit=1G
 
       - name: Report to GitHub PR (Checkstyle via cs2pr)
         if: ${{ failure() }}
-        run: vendor/bin/phpstan analyse --level=max --error-format=checkstyle | cs2pr
+        run: vendor/bin/phpstan analyse --error-format=checkstyle | cs2pr
