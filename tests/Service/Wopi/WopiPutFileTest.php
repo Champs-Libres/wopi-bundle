@@ -33,7 +33,7 @@ final class WopiPutFileTest extends TestCase
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileNoLock()
+    public function testPutFileNoLock(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))->willReturn(new DummyDocument());
@@ -82,7 +82,7 @@ final class WopiPutFileTest extends TestCase
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileTimestampVersioningNoConflict()
+    public function testPutFileTimestampVersioningNoConflict(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))->willReturn(new DummyDocument());
@@ -131,7 +131,7 @@ final class WopiPutFileTest extends TestCase
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileTimestampVersioningWithConflict()
+    public function testPutFileTimestampVersioningWithConflict(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))
@@ -184,7 +184,7 @@ final class WopiPutFileTest extends TestCase
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileTimestampVersioningWithoutTimestampHeader()
+    public function testPutFileTimestampVersioningWithoutTimestampHeader(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))
@@ -233,7 +233,7 @@ final class WopiPutFileTest extends TestCase
     /**
      * @covers \PutFile::class
      */
-    public function testPutFileWhenUserCannotWrite()
+    public function testPutFileWhenUserCannotWrite(): void
     {
         $documentManager = $this->prophesize(DocumentManagerInterface::class);
         $documentManager->findByDocumentId(Argument::type('string'))

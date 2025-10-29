@@ -35,8 +35,13 @@ class PutFile
         private readonly StreamFactoryInterface $streamFactory,
         private readonly UserManagerInterface $userManager,
     ) {
-        $this->versionManagement = $parameterBag->get('wopi')['version_management'];
-        $this->enableLock = $parameterBag->get('wopi')['enable_lock'];
+        $config = $parameterBag->get('wopi');
+        if (is_array($config) && isset($config['version_management']) && isset($config['enable_lock'])) {
+            $this->versionManagement = $config['version_management'];
+            $this->enableLock = $config['enable_lock'];
+        } else {
+            throw new \UnexpectedValueException("Invalid configuration for 'wopi' section: missing 'version_management' or 'enable_lock' keys");
+        }
     }
 
     public function __invoke(
