@@ -14,10 +14,10 @@
         "ext-mbstring": "*",
         "champs-libres/wopi-lib": "dev-master",
         "loophp/psr-http-message-bridge-bundle": "^1",
-        "symfony/expression-language": ">= 4.4",
-        "symfony/framework-bundle": ">= 4.4",
-        "symfony/http-client": ">= 4.4",
-        "symfony/security-core": ">= 4.4"
+        "symfony/expression-language": "^7.3",
+        "symfony/framework-bundle": "^7.3",
+        "symfony/http-client": "^7.3",
+        "symfony/security-core": "^7.3"
     },
     "require-dev": {
         "friends-of-phpspec/phpspec-code-coverage": "^6.1",
@@ -25,8 +25,7 @@
         "phpspec/phpspec": "^7.1",
         "phpspec/prophecy": "^1.16",
         "phpspec/prophecy-phpunit": "^2.0",
-        "phpunit/phpunit": "^9.5",
-        "symfony/phpunit-bridge": "^6.2",
+        "phpunit/phpunit": "^11.5",
         "php-cs-fixer/shim": "^3.89",
         "phpstan/phpstan": "^2.1",
         "jangregor/phpstan-prophecy": "^2.2",
@@ -54,6 +53,7 @@
     "scripts": {
         "php-cs-fixer": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --diff",
         "cs": ["@php-cs-fixer"],
-        "test": "phpunit"
+        "test": "phpunit",
+        "rector": "rector process"
     }
 }
