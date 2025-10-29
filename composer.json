@@ -30,7 +30,8 @@
         "php-cs-fixer/shim": "^3.89",
         "phpstan/phpstan": "^2.1",
         "jangregor/phpstan-prophecy": "^2.2",
-        "phpstan/extension-installer": "^1.4"
+        "phpstan/extension-installer": "^1.4",
+        "rector/rector": "^2.2"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
