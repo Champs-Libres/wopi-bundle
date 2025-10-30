@@ -22,7 +22,7 @@
     "require-dev": {
         "friends-of-phpspec/phpspec-code-coverage": "^6.1",
         "nyholm/psr7": "^1.4",
-        "phpspec/phpspec": "^7.1",
+        "phpspec/phpspec": "^8.0",
         "phpspec/prophecy": "^1.16",
         "phpspec/prophecy-phpunit": "^2.0",
         "phpunit/phpunit": "^11.5",
