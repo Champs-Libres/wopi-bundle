@@ -14,10 +14,10 @@
         "ext-mbstring": "*",
         "champs-libres/wopi-lib": "^1 || ^2",
         "loophp/psr-http-message-bridge-bundle": "^1",
-        "symfony/expression-language": "^7.3",
-        "symfony/framework-bundle": "^7.3",
-        "symfony/http-client": "^7.3",
-        "symfony/security-core": "^7.3"
+        "symfony/expression-language": "^6.4 || ^7.3",
+        "symfony/framework-bundle": "^6.4 || ^7.3",
+        "symfony/http-client": "^6.4 || ^7.3",
+        "symfony/security-core": "^6.4 || ^7.3"
     },
     "require-dev": {
         "friends-of-phpspec/phpspec-code-coverage": "^7.0",
