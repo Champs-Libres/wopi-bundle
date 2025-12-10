@@ -12,7 +12,7 @@
         "php": ">= 8.3",
         "ext-json": "*",
         "ext-mbstring": "*",
-        "champs-libres/wopi-lib": "dev-master",
+        "champs-libres/wopi-lib": "^1 || ^2",
         "loophp/psr-http-message-bridge-bundle": "^1",
         "symfony/expression-language": "^7.3",
         "symfony/framework-bundle": "^7.3",
